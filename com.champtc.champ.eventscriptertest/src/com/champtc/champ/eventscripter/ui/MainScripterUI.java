@@ -28,11 +28,20 @@ public class MainScripterUI {
 		// create the main shell and display
 		Display mainDisplay = new Display();
 		Shell mainScripterShell = new Shell(mainDisplay,NON_RESIZABLE);
-		mainScripterShell.setSize(600,450);
+		mainScripterShell.setSize(535,450);
 		mainScripterShell.setText("Event Scripter");
+		
+		mainScripterShell.setBackground(mainDisplay.getSystemColor(SWT.COLOR_WHITE));
 		
 		FileHandlingComposite FHC = new FileHandlingComposite(mainScripterShell, SWT.NONE, controller);
 		FHC.setBounds(5, 5, 520, 125);
+		
+		TimerManipulationComposite TMC = new TimerManipulationComposite(mainScripterShell, SWT.NONE, controller);
+		TMC.setBounds(5, 135, 230, 125);
+		
+		FileStatisticsComposite FSC = new FileStatisticsComposite(mainScripterShell, SWT.NONE, controller);
+		FSC.setBounds(240, 135, 285, 125);
+		
 
 
 //		// create the timed/manual radial buttons

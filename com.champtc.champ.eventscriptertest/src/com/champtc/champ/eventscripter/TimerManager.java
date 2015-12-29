@@ -4,16 +4,20 @@ package com.champtc.champ.eventscripter;
  * Handles the timer settings.
  */
 public class TimerManager {
-	private String timerUnits;
+	private String lowerBoundUnits;
+	private String upperBoundUnits;
 	private String intervalType;
-	private int baseTimerIntervalValue;
-	private boolean addRandomTime;
+	private String eventSendPreference;
+	private int lowerTimerBound;
+	private int upperTimerBound;
 	
 	public TimerManager(){
-		timerUnits = "seconds";
-		intervalType = "default";
-		baseTimerIntervalValue = 1;
-		addRandomTime = false;
+		lowerBoundUnits = "seconds";
+		upperBoundUnits = "seconds";
+		intervalType = "every";
+		eventSendPreference = "timed";
+		lowerTimerBound = 20;
+		upperTimerBound = 20;
 	}
 	
 	/**
@@ -24,6 +28,7 @@ public class TimerManager {
 	}
 
 	/**
+	 * Sets intervals to send either every set of time or between the upper and lower time bounds.
 	 * @param intervalType the intervalType to set
 	 */
 	public void setIntervalType(String intervalType) {
@@ -31,47 +36,74 @@ public class TimerManager {
 	}
 
 	/**
-	 * @return the fixedIntervalValue
+	 * @return the lowerTimerBound
 	 */
-	public int getBaseTimerIntervalValue() {
-		return baseTimerIntervalValue;
+	public int getLowerTimerBound() {
+		return lowerTimerBound;
 	}
 
 	/**
-	 * @param fixedIntervalValue the fixedIntervalValue to set
+	 * @param lowerTimerBound the lowerTimerBound to set
 	 */
-	public void setBaseTimerIntervalValue(int baseTimeIntervalValue) {
-		this.baseTimerIntervalValue = baseTimeIntervalValue;
+	public void setLowerTimerBound(int lowerTimerBound) {
+		this.lowerTimerBound = lowerTimerBound;
 	}
 
 	/**
-	 * @return the timerUnits
+	 * @return the upperTimerBound
 	 */
-	public String getTimerUnits() {
-		return timerUnits;
+	public int getUpperTimerBound() {
+		return upperTimerBound;
 	}
 
 	/**
-	 * @param timerUnits the timerUnits to set
+	 * @param upperTimerBound the upperTimerBound to set
 	 */
-	public void setTimerUnits(String timerUnits) {
-		this.timerUnits = timerUnits;
+	public void setUpperTimerBound(int upperTimerBound) {
+		this.upperTimerBound = upperTimerBound;
 	}
 
 	/**
-	 * @return the addRandomTime
+	 * @return the lowerBoundUnits
 	 */
-	public boolean isAddRandomTime() {
-		return addRandomTime;
+	public String getLowerBoundUnits() {
+		return lowerBoundUnits;
 	}
 
 	/**
-	 * @param addRandomTime the addRandomTime to set
+	 * @param lowerBoundUnits the lowerBoundUnits to set
 	 */
-	public void setAddRandomTime(boolean addRandomTime) {
-		this.addRandomTime = addRandomTime;
+	public void setLowerBoundUnits(String lowerBoundUnits) {
+		this.lowerBoundUnits = lowerBoundUnits;
+	}
+
+	/**
+	 * @return the upperBoundUnits
+	 */
+	public String getUpperBoundUnits() {
+		return upperBoundUnits;
+	}
+
+	/**
+	 * @param upperBoundUnits the upperBoundUnits to set
+	 */
+	public void setUpperBoundUnits(String upperBoundUnits) {
+		this.upperBoundUnits = upperBoundUnits;
+	}
+
+	/**
+	 * @return the eventSendPreferences
+	 */
+	public String getEventSendPreferences() {
+		return eventSendPreference;
 	}
 	
 	
-	
+	/**
+	 * Sets the interval to send in a timed basis or a manually.
+	 * @param eventSendPreferences the eventSendPreferences to set
+	 */
+	public void setEventSendPreferences(String eventSendPreference) {
+		this.eventSendPreference = eventSendPreference;
+	}
 }

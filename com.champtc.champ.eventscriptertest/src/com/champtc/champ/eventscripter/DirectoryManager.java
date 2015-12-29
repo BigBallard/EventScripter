@@ -16,7 +16,6 @@ public class DirectoryManager {
 	private int eventFilesLeft;
 	
 	public DirectoryManager(){
-		
 		totalEventFiles = 0;
 		sentEventFiles = 0;
 		eventFilesLeft = 0;
@@ -101,6 +100,7 @@ public class DirectoryManager {
 		for(File f: fileList){
 			count++;
 		}
+		setEventFilesLeft(count);
 		this.totalEventFiles = count;
 	}
 	/**

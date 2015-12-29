@@ -1,6 +1,7 @@
 package com.champtc.champ.eventscripter;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -14,15 +15,13 @@ import java.util.Scanner;
  */
 public class ScriptController {
 	
-	private DirectoryManager dirMan;
-	private TimerManager timMan;
-	private String eventSendPreference;
+	public DirectoryManager dirMan;
+	public TimerManager timMan;
 	private final int nanoToSecond = 1000000000;
 	
 	public ScriptController(){
 		dirMan = new DirectoryManager();
 		timMan = new TimerManager();
-		eventSendPreference = "default";
 	}
 	
 	/**
@@ -31,8 +30,19 @@ public class ScriptController {
 	public void setSourceFolder(String sourcePath){
 		dirMan.setSourceFolder(new File(sourcePath));
 		
+		File dir = new File(sourcePath);
+		File[] files = dir.listFiles(new FilenameFilter() {
+			
+			@Override
+			public boolean accept(File dir, String name) {
+				if(name.endsWith(".txt")|| name.endsWith(".csv")){
+					return true;
+				}else
+					return false;
+			}
+		});
 		if(dirMan.getSourceFolder().exists())
-		dirMan.setEventFileList(dirMan.getSourceFolder().listFiles());
+		dirMan.setEventFileList(files);
 	}
 	
 	/**
@@ -52,9 +62,9 @@ public class ScriptController {
 		
 		while(true){
 			System.out.println("Will events be sent by a timer or manually? (t/m)");
-			eventSendPreference = sc.nextLine().toLowerCase();
+			timMan.setEventSendPreferences(sc.nextLine().toLowerCase());
 			
-			switch(eventSendPreference){
+			switch(timMan.getEventSendPreferences()){
 				case "manual":
 				case "m":
 					
@@ -62,18 +72,13 @@ public class ScriptController {
 					return;
 				case "timer":
 				case "t":
+					// TODO prompt for lower and upper bound units
 					System.out.println("Will the time intervals be in minutes or seconds? (m/s)");
-					timMan.setTimerUnits(sc.next());
+//					timMan.setTimerUnits(sc.next());
 					
-					System.out.println("Send event every: ");				
+					System.out.println("Send event between or every? (b/e)");				
 					timMan.setIntervalType(sc.next());
 					
-					System.out.println("Add additional random time? (y/n)");
-					String answer = sc.next();
-					
-					if(answer.equalsIgnoreCase("y")){
-						timMan.setAddRandomTime(true);
-					}
 					
 					sc.close();
 					return;
@@ -84,7 +89,7 @@ public class ScriptController {
 	}
 	
 	public void run() throws IOException{
-		if(eventSendPreference.equalsIgnoreCase("manual") || eventSendPreference.equalsIgnoreCase("m")){
+		if(timMan.getEventSendPreferences().equalsIgnoreCase("manual") || timMan.getEventSendPreferences().equalsIgnoreCase("m")){
 			runOnManual();
 		}else{
 			runOnTimer();
@@ -109,12 +114,10 @@ public class ScriptController {
 		for(File f : dirMan.getEventFileList()){
 			int timerClick = (int) (System.nanoTime() / nanoToSecond);
 			
-			if(timMan.isAddRandomTime()){
-				randomTimeValue = (new Random().nextInt(21) + 1) ;
-			}
+			randomTimeValue = (new Random().nextInt(timMan.getUpperTimerBound() - timMan.getLowerTimerBound()) + 0) ;
 			
 			while(true){
-				if((int) (System.nanoTime() / nanoToSecond) - timerClick >= timMan.getBaseTimerIntervalValue() + randomTimeValue){
+				if((int) (System.nanoTime() / nanoToSecond) - timerClick >= timMan.getLowerTimerBound() + randomTimeValue){
 					dirMan.updateFileCounts();
 					System.out.println("Event " + dirMan.getSentEventFiles());
 					File dest = new File(dirMan.getDestinationFolder() + "\\" + f.getName());
@@ -125,21 +128,6 @@ public class ScriptController {
 		}
 		dirMan.resetFileCounts();
 		return;
-	}
-	
-	/**
-	 * @return the eventSendPreferences
-	 */
-	public String getEventSendPreferences() {
-		return eventSendPreference;
-	}
-	
-	
-	/**
-	 * @param eventSendPreferences the eventSendPreferences to set
-	 */
-	public void setEventSendPreferences(String eventSendPreference) {
-		this.eventSendPreference = eventSendPreference;
 	}
 	
 }

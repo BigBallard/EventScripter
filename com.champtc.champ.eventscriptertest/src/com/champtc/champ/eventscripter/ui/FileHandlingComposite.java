@@ -20,9 +20,6 @@ import org.eclipse.wb.swt.SWTResourceManager;
 import com.champtc.champ.eventscripter.ScriptController;
 
 public class FileHandlingComposite extends Composite {
-	private Text txtSourceFolder;
-	private Text txtMonitoredFolder;
-	private Button sourceBrowseButton;
 
 	 /**
 	 * Create the composite.
@@ -31,14 +28,15 @@ public class FileHandlingComposite extends Composite {
 	 */
 	public FileHandlingComposite(Composite parent, int style, ScriptController SC) {
 		super(parent, SWT.BORDER);
-		ScriptController controller = SC;
 		
-		txtSourceFolder = new Text(this, SWT.BORDER);
+		Text txtSourceFolder = new Text(this, SWT.BORDER);
+		txtSourceFolder.setFont(SWTResourceManager.getFont("Segoe UI", 10, SWT.NORMAL));
+		txtSourceFolder.setBounds(10, 30, 400, 25);
 		txtSourceFolder.addFocusListener(new FocusAdapter() {
 			@Override
 			public void focusLost(FocusEvent e) {
 				if(new File(txtSourceFolder.getText()).exists())
-					controller.setSourceFolder(txtSourceFolder.getText());
+					SC.setSourceFolder(txtSourceFolder.getText());
 			}
 		});
 		txtSourceFolder.addKeyListener(new KeyAdapter() {
@@ -52,15 +50,13 @@ public class FileHandlingComposite extends Composite {
 				}
 			}
 		});
-		txtSourceFolder.setFont(SWTResourceManager.getFont("Segoe UI", 10, SWT.NORMAL));
-		txtSourceFolder.setBounds(10, 30, 400, 25);
 		
-		txtMonitoredFolder = new Text(this, SWT.BORDER);
+		Text txtMonitoredFolder = new Text(this, SWT.BORDER);
 		txtMonitoredFolder.addFocusListener(new FocusAdapter() {
 			@Override
 			public void focusLost(FocusEvent e) {
 				if(new File(txtMonitoredFolder.getText()).exists())
-					controller.setDestinationFolder(txtMonitoredFolder.getText());
+					SC.setDestinationFolder(txtMonitoredFolder.getText());
 			}
 		});
 		txtMonitoredFolder.addKeyListener(new KeyAdapter() {
@@ -71,14 +67,14 @@ public class FileHandlingComposite extends Composite {
 					txtMonitoredFolder.setForeground(parent.getShell().getDisplay().getSystemColor(SWT.COLOR_RED));
 				}else{
 					txtMonitoredFolder.setForeground(parent.getShell().getDisplay().getSystemColor(SWT.COLOR_BLACK));
-					controller.setDestinationFolder(currentText);
+					SC.setDestinationFolder(currentText);
 				}
 			}
 		});
 		txtMonitoredFolder.setFont(SWTResourceManager.getFont("Segoe UI", 10, SWT.NORMAL));
 		txtMonitoredFolder.setBounds(10, 80, 400, 25);
 		
-		sourceBrowseButton = new Button(this, SWT.NONE);
+		Button sourceBrowseButton = new Button(this, SWT.NONE);
 		sourceBrowseButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -86,13 +82,15 @@ public class FileHandlingComposite extends Composite {
 				DD.setFilterPath("c:\\");
 				String resultFolder = DD.open();
 				txtSourceFolder.setText(resultFolder);
+				SC.dirMan.setSourceFolder(new File(resultFolder));
 			}
 		});
 		sourceBrowseButton.setBounds(420, 30, 85, 25);
 		sourceBrowseButton.setText("Browse");
 		
 		Label sourceDirectoryLabel = new Label(this, SWT.NONE);
-		sourceDirectoryLabel.setBounds(10, 10, 200, 15);
+		sourceDirectoryLabel.setFont(SWTResourceManager.getFont("Segoe UI", 10, SWT.NORMAL));
+		sourceDirectoryLabel.setBounds(10, 10, 200, 17);
 		sourceDirectoryLabel.setText("Numbered Source Files Directory");
 		
 		Button monitoredBrowseButton = new Button(this, SWT.NONE);
@@ -103,6 +101,7 @@ public class FileHandlingComposite extends Composite {
 				DD.setFilterPath("c:\\");
 				String resultFolder = DD.open();
 				txtMonitoredFolder.setText(resultFolder);
+				SC.dirMan.setDestinationFolder(new File(resultFolder));
 			}
 		});
 		monitoredBrowseButton.setBounds(420, 80, 85, 25);
@@ -110,7 +109,8 @@ public class FileHandlingComposite extends Composite {
 		setTabList(new Control[]{txtSourceFolder, txtMonitoredFolder, sourceBrowseButton, monitoredBrowseButton});
 		
 		Label monitoredDirectoryLabel = new Label(this, SWT.NONE);
-		monitoredDirectoryLabel.setBounds(10, 59, 210, 15);
+		monitoredDirectoryLabel.setFont(SWTResourceManager.getFont("Segoe UI", 10, SWT.NORMAL));
+		monitoredDirectoryLabel.setBounds(10, 61, 210, 17);
 		monitoredDirectoryLabel.setText("DarkLight Monitor Folder");
 
 	}
