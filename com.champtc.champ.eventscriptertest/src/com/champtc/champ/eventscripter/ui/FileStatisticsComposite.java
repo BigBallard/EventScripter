@@ -90,7 +90,7 @@ public class FileStatisticsComposite extends Composite {
 		backButton.setImage(SWTResourceManager.getImage(FileStatisticsComposite.class, "/icons/back.png"));
 		backButton.setBounds(0, 0, 30, 30);
 		
-		
+	
 
 	}
 

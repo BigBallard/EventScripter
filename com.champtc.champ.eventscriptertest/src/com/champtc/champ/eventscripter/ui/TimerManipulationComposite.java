@@ -27,7 +27,7 @@ public class TimerManipulationComposite extends Composite {
 		super(parent, SWT.BORDER);
 		
 		Composite innerComposite = new Composite(this, SWT.NONE);
-		innerComposite.setBounds(10, 29, 195, 78);
+		innerComposite.setBounds(10, 29, 195, 98);
 		
 		Button timeRadioButton = new Button(this, SWT.RADIO);
 		timeRadioButton.setSelection(true);
@@ -42,42 +42,42 @@ public class TimerManipulationComposite extends Composite {
 		Spinner intervalSpinner_1 = new Spinner(innerComposite, SWT.BORDER);
 		intervalSpinner_1.setFont(SWTResourceManager.getFont("Segoe UI", 10, SWT.NORMAL));
 		intervalSpinner_1.setSelection(20);
-		intervalSpinner_1.setBounds(0, 21, 47, 22);
+		intervalSpinner_1.setBounds(0, 30, 47, 23);
 		intervalSpinner_1.setValues(20, 0, 999, 0, 1, 10);
 		
 		Spinner intervalSpinner_2 = new Spinner(innerComposite, SWT.BORDER);
 		intervalSpinner_2.setEnabled(false);
 		intervalSpinner_2.setSelection(20);
-		intervalSpinner_2.setBounds(0, 56, 47, 22);
+		intervalSpinner_2.setBounds(0, 62, 47, 23);
 		intervalSpinner_2.setValues(20, 0, 999, 0, 1, 10);
 		
 		String choices[] = {"Seconds","Minutes"};
 		Combo unitCombo_1 = new Combo(innerComposite, SWT.NONE);
-		unitCombo_1.setBounds(63, 21, 91, 23);
+		unitCombo_1.setBounds(63, 30, 91, 22);
 		unitCombo_1.setItems(choices);
 		unitCombo_1.setText("Seconds");
 		
 		Combo unitCombo_2 = new Combo(innerComposite, SWT.NONE);
 		unitCombo_2.setEnabled(false);
-		unitCombo_2.setBounds(63, 56, 91, 23);
+		unitCombo_2.setBounds(63, 62, 91, 23);
 		unitCombo_2.setItems(choices);
 		unitCombo_2.setText("Seconds");
 		
 		Button betweenSelectionRadio = new Button(innerComposite, SWT.RADIO);
 		betweenSelectionRadio.setText("between");
-		betweenSelectionRadio.setBounds(130, -1, 90, 16);
+		betweenSelectionRadio.setBounds(130, 5, 90, 16);
 		
 		Button everySelectionRadio = new Button(innerComposite, SWT.RADIO);
 		everySelectionRadio.setSelection(true);
-		everySelectionRadio.setBounds(75, -1, 49, 16);
+		everySelectionRadio.setBounds(78, 5, 49, 16);
 		everySelectionRadio.setText("every");
 		
 		Label lblCopyText = new Label(innerComposite, SWT.NONE);
-		lblCopyText.setBounds(0, 0, 69, 15);
+		lblCopyText.setBounds(0, 5, 72, 15);
 		lblCopyText.setText("Copy next file");
 		
 		Label lblAnd = new Label(innerComposite, SWT.NONE);
-		lblAnd.setBounds(160, 29, 20, 15);
+		lblAnd.setBounds(160, 39, 20, 15);
 		lblAnd.setText("and");
 		
 		
@@ -88,7 +88,7 @@ public class TimerManipulationComposite extends Composite {
 				if(timeRadioButton.getSelection()){
 					intervalSpinner_1.setEnabled(true);
 					unitCombo_1.setEnabled(true);
-					innerComposite.setEnabled(true);
+					innerComposite.setVisible(true);
 					if(betweenSelectionRadio.getSelection()){
 						intervalSpinner_2.setEnabled(true);
 						unitCombo_2.setEnabled(true);
@@ -107,7 +107,7 @@ public class TimerManipulationComposite extends Composite {
 					intervalSpinner_2.setEnabled(false);
 					unitCombo_1.setEnabled(false);
 					unitCombo_2.setEnabled(false);
-					innerComposite.setEnabled(false);
+					innerComposite.setVisible(false);;
 				}
 			}
 		});
