@@ -49,6 +49,7 @@ public class DirectoryManager {
 	 * @param sourceFolder the sourceFolder to set
 	 */
 	public void setSourceFolder(File sourceFolder) {
+		
 		this.sourceFolder = sourceFolder;
 	}
 	/**

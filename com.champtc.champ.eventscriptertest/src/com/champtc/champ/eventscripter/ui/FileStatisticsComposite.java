@@ -24,7 +24,6 @@ public class FileStatisticsComposite extends Composite {
 	public FileStatisticsComposite(Composite parent, int style, ScriptController SC) {
 		super(parent, SWT.BORDER);
 		
-		setBackground(SWTResourceManager.getColor(SWT.COLOR_WIDGET_BACKGROUND));
 		Label lblSourceFiles = new Label(this, SWT.NONE);
 		lblSourceFiles.setForeground(SWTResourceManager.getColor(0, 0, 0));
 		lblSourceFiles.setFont(SWTResourceManager.getFont("Segoe UI", 10, SWT.BOLD));
