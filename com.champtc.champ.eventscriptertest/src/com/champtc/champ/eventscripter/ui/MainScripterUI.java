@@ -27,10 +27,13 @@ import com.champtc.champ.eventscripter.ScriptController;
 
 public class MainScripterUI {
 	private static final int NON_RESIZABLE = SWT.CLOSE | SWT.TITLE | SWT.MIN | SWT.MAX ;
-	public ScriptController controller;
+	private ScriptController controller;
+	private boolean isRunning;
 	
 	public MainScripterUI(){
 		controller = new ScriptController();
+		isRunning = false;
+		
 		
 		Display mainDisplay = new Display();
 		Shell mainScripterShell = new Shell(mainDisplay,NON_RESIZABLE);
@@ -157,6 +160,8 @@ public class MainScripterUI {
 					unitCombo_1.setEnabled(false);
 					unitCombo_2.setEnabled(false);
 					innerComposite.setVisible(false);;
+					
+					
 				}
 			}
 		});
@@ -273,22 +278,16 @@ public class MainScripterUI {
 		playButton.setEnabled(false);
 		playButton.setImage(SWTResourceManager.getImage(FileStatisticsComposite.class, "/icons/play-arrow.png"));
 		playButton.setBounds(72, 0, 30, 30);
-		playButton.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				
-			}
-		});
 		
 		Button pauseButton = new Button(playerComposite, SWT.NONE);
 		pauseButton.setEnabled(false);
 		pauseButton.setImage(SWTResourceManager.getImage(FileStatisticsComposite.class, "/icons/pause.png"));
 		pauseButton.setBounds(36, 0, 30, 30);
 		
-		Button backButton = new Button(playerComposite, SWT.NONE);
-		backButton.setEnabled(false);
-		backButton.setImage(SWTResourceManager.getImage(FileStatisticsComposite.class, "/icons/back.png"));
-		backButton.setBounds(0, 0, 30, 30);
+		Button resetButton = new Button(playerComposite, SWT.NONE);
+		resetButton.setEnabled(false);
+		resetButton.setImage(SWTResourceManager.getImage(FileStatisticsComposite.class, "/icons/back.png"));
+		resetButton.setBounds(0, 0, 30, 30);
 		
 		
 //		FileStatisticsComposite FSC = new FileStatisticsComposite(mainScripterShell, SWT.NONE, controller);
@@ -299,10 +298,14 @@ public class MainScripterUI {
 		txtSourceFolder.addFocusListener(new FocusAdapter() {
 			@Override
 			public void focusLost(FocusEvent e) {
-				if(new File(txtSourceFolder.getText()).exists())
+				if(new File(txtSourceFolder.getText()).exists()){
 					controller.setSourceFolder(txtSourceFolder.getText());
+					controller.dirMan.setHasSourceFolder(true);
+				}
 				Integer count = controller.dirMan.getTotalEventFiles();
 				lblTotalCount.setText(count.toString());
+				playButtonCheck(controller, playButton);
+				
 			}
 		});
 		txtSourceFolder.addKeyListener(new KeyAdapter() {
@@ -311,17 +314,25 @@ public class MainScripterUI {
 				String currentText = txtSourceFolder.getText();
 				if(!(new File(currentText).exists())){
 					txtSourceFolder.setForeground(mainDisplay.getSystemColor(SWT.COLOR_RED));
+					controller.setSourceFolder("");
+					controller.dirMan.setHasSourceFolder(false);
 				}else{
 					txtSourceFolder.setForeground(mainDisplay.getSystemColor(SWT.COLOR_BLACK));
+					controller.setSourceFolder(currentText);
+					controller.dirMan.setHasSourceFolder(true);
 				}
+				playButtonCheck(controller, playButton);
 			}
 		});
 		
 		txtMonitoredFolder.addFocusListener(new FocusAdapter() {
 			@Override
 			public void focusLost(FocusEvent e) {
-				if(new File(txtMonitoredFolder.getText()).exists())
+				if(new File(txtMonitoredFolder.getText()).exists()){
 					controller.setDestinationFolder(txtMonitoredFolder.getText());
+					controller.dirMan.setHasDestinationFolder(true);
+				}
+				playButtonCheck(controller, playButton);
 			}
 		});
 		txtMonitoredFolder.addKeyListener(new KeyAdapter() {
@@ -330,10 +341,14 @@ public class MainScripterUI {
 				String currentText = txtMonitoredFolder.getText();
 				if(!(new File(currentText).exists())){
 					txtMonitoredFolder.setForeground(mainDisplay.getSystemColor(SWT.COLOR_RED));
+					controller.setDestinationFolder("");
+					controller.dirMan.setHasDestinationFolder(false);
 				}else{
 					txtMonitoredFolder.setForeground(mainDisplay.getSystemColor(SWT.COLOR_BLACK));
 					controller.setDestinationFolder(currentText);
+					controller.dirMan.setHasDestinationFolder(true);
 				}
+				playButtonCheck(controller, playButton);
 			}
 		});
 		
@@ -349,6 +364,8 @@ public class MainScripterUI {
 				Integer count = controller.dirMan.getTotalEventFiles();
 				lblTotalCount.setText(count.toString());
 				lblToGoCount.setText(count.toString());
+				controller.dirMan.setHasSourceFolder(true);
+				playButtonCheck(controller, playButton);
 			}
 		});
 		
@@ -360,6 +377,8 @@ public class MainScripterUI {
 				String resultFolder = DD.open();
 				txtMonitoredFolder.setText(resultFolder);
 				controller.dirMan.setDestinationFolder(new File(resultFolder));
+				controller.dirMan.setHasDestinationFolder(true);
+				playButtonCheck(controller, playButton);
 			}
 		});
 		
@@ -376,6 +395,8 @@ public class MainScripterUI {
 						intervalSpinner_2.setEnabled(true);
 						unitCombo_2.setEnabled(true);
 					}
+					
+					pauseButton.setVisible(true);
 				}
 			}
 		});
@@ -390,7 +411,9 @@ public class MainScripterUI {
 					intervalSpinner_2.setEnabled(false);
 					unitCombo_1.setEnabled(false);
 					unitCombo_2.setEnabled(false);
-					innerComposite.setVisible(false);;
+					innerComposite.setVisible(false);
+					
+					pauseButton.setVisible(false);
 				}
 			}
 		});
@@ -442,11 +465,88 @@ public class MainScripterUI {
 		});
 		
 		
+		playButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if(isRunning){
+					controller.setPauseFlag(false);
+				}else{
+					try {
+						play();
+						resetLabelCounts(lblSentCount, lblToGoCount);
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				}
+			}
+		});
+		
+		pauseButton.addSelectionListener(new SelectionAdapter() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				controller.setPauseFlag(true);
+			}
+			
+		});
+		
+		resetButton.addSelectionListener(new SelectionAdapter() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				controller.setResetFlag(true);
+			}
+		});
+		
+		
 		mainScripterShell.open();
 		while(!mainScripterShell.isDisposed()){
 			if(!mainDisplay.readAndDispatch())
 				mainDisplay.sleep();
 		}
 		mainDisplay.dispose();
+	}
+	
+	/**
+	 * 
+	 * @param controller
+	 * @param playButton
+	 */
+	public void playButtonCheck(ScriptController controller,Button playButton){
+		if(controller.dirMan.foldersConfigured()){
+			playButton.setEnabled(true);
+		}else{
+			playButton.setEnabled(false);
+		}
+	}
+	
+	/**
+	 * 
+	 */
+	public void resetLabelCounts(Label sent, Label togo){
+		sent.setText("0");
+		Integer togoCount = controller.dirMan.getTotalEventFiles();
+		togo.setText(togoCount.toString());
+		return;
+	}
+	
+	/**
+	 * 
+	 * @throws IOException
+	 */
+	public void play() throws IOException{
+		
+		if(controller.timMan.getEventSendPreferences().equalsIgnoreCase("manual")){
+			isRunning = true;
+			controller.runOnManual();
+			
+		}else if(controller.timMan.getEventSendPreferences().equalsIgnoreCase("timed")){
+			isRunning = true;
+			controller.runOnTimer();
+		}
+		
+		isRunning = false;
+		return;
 	}
 }

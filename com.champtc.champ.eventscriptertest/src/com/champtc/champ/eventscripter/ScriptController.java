@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Random;
-import java.util.Scanner;
+
 
 /**
  * Application controller that manages a DirectoryManager and TimerManager to conduct event 
@@ -14,16 +14,48 @@ import java.util.Scanner;
  *
  */
 public class ScriptController {
-	
+	private Util U;
 	public DirectoryManager dirMan;
 	public TimerManager timMan;
-	private final int nanoToSecond = 1000000000;
+	private boolean pauseFlag;
+	private boolean resetFlag;
 	
 	public ScriptController(){
+		U = new Util();
 		dirMan = new DirectoryManager();
 		timMan = new TimerManager();
+		pauseFlag = false;
+		resetFlag = false;
 	}
 	
+	/**
+	 * @return the pauseFlag
+	 */
+	public boolean hasPauseFlag() {
+		return pauseFlag;
+	}
+
+	/**
+	 * @param pauseFlag the pauseFlag to set
+	 */
+	public void setPauseFlag(boolean pauseFlag) {
+		this.pauseFlag = pauseFlag;
+	}
+
+	/**
+	 * @return the resetFlag
+	 */
+	public boolean hasResetFlag() {
+		return resetFlag;
+	}
+
+	/**
+	 * @param resetFlag the resetFlag to set
+	 */
+	public void setResetFlag(boolean resetFlag) {
+		this.resetFlag = resetFlag;
+	}
+
 	/**
 	 * 
 	 */
@@ -53,51 +85,7 @@ public class ScriptController {
 		
 	}	
 	
-	
-	/**
-	 * Setting the preferences is not required unless the user does not want the default settings set in {@link TimerManager#TimerManager() TimerManagerConstructor}.
-	 */
-	public void setTimerPreferences(){
-		Scanner sc = new Scanner(System.in);
-		
-		while(true){
-			System.out.println("Will events be sent by a timer or manually? (t/m)");
-			timMan.setEventSendPreferences(sc.nextLine().toLowerCase());
-			
-			switch(timMan.getEventSendPreferences()){
-				case "manual":
-				case "m":
-					
-					sc.close();
-					return;
-				case "timer":
-				case "t":
-					// TODO prompt for lower and upper bound units
-					System.out.println("Will the time intervals be in minutes or seconds? (m/s)");
-//					timMan.setTimerUnits(sc.next());
-					
-					System.out.println("Send event between or every? (b/e)");				
-					timMan.setIntervalType(sc.next());
-					
-					
-					sc.close();
-					return;
-				default:
-					System.out.println("Invalid entry.");
-			}
-		}
-	}
-	
-	public void run() throws IOException{
-		if(timMan.getEventSendPreferences().equalsIgnoreCase("manual") || timMan.getEventSendPreferences().equalsIgnoreCase("m")){
-			runOnManual();
-		}else{
-			runOnTimer();
-		}
-		
-	}
-	
-	private void runOnManual() throws IOException{
+	public void runOnManual() throws IOException{
 		
 		for(File f : dirMan.getEventFileList()){
 			dirMan.updateFileCounts();
@@ -109,20 +97,45 @@ public class ScriptController {
 		return;
 	}
 	
-	private void runOnTimer() throws IOException{
+	/**
+	 * 
+	 * @throws IOException
+	 */
+	public void runOnTimer() throws IOException{
 		int randomTimeValue = 0;
+		
 		for(File f : dirMan.getEventFileList()){
-			int timerClick = (int) (System.nanoTime() / nanoToSecond);
-			
-			randomTimeValue = (new Random().nextInt(timMan.getUpperTimerBound() - timMan.getLowerTimerBound()) + 0) ;
-			
-			while(true){
-				if((int) (System.nanoTime() / nanoToSecond) - timerClick >= timMan.getLowerTimerBound() + randomTimeValue){
-					dirMan.updateFileCounts();
-					System.out.println("Event " + dirMan.getSentEventFiles());
-					File dest = new File(dirMan.getDestinationFolder() + "\\" + f.getName());
-					Files.copy(f.toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
-					break;
+			boolean sentFlag = false;
+			while(!sentFlag){
+				int timerClick = U.nanoToSecond(System.nanoTime());
+				
+				randomTimeValue = (new Random().nextInt(timMan.getUpperTimerBound() - timMan.getLowerTimerBound()) + 0) ;
+				
+				while(true){
+					if(U.nanoToSecond(System.nanoTime()) - timerClick >= timMan.getLowerTimerBound() + randomTimeValue){
+						dirMan.updateFileCounts();
+						System.out.println("Event " + dirMan.getSentEventFiles());
+						File dest = new File(dirMan.getDestinationFolder() + "\\" + f.getName());
+						Files.copy(f.toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
+						sentFlag = true;
+						break;
+					}
+					
+					if(pauseFlag){
+						while(pauseFlag){
+							if(resetFlag){
+								dirMan.resetFileCounts();
+								return;
+							}
+						}
+						break;
+					}
+					
+					if(resetFlag){
+						dirMan.resetFileCounts();
+						return;
+					}
+					
 				}
 			}
 		}

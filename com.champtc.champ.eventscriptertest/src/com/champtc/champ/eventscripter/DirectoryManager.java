@@ -14,11 +14,15 @@ public class DirectoryManager {
 	private int totalEventFiles;
 	private int sentEventFiles;
 	private int eventFilesLeft;
+	boolean hasSourceFolder;
+	boolean hasDestinationFolder;
 	
 	public DirectoryManager(){
 		totalEventFiles = 0;
 		sentEventFiles = 0;
 		eventFilesLeft = 0;
+		hasSourceFolder = false;
+		hasDestinationFolder = false;
 	}
 	
 	/**
@@ -78,16 +82,6 @@ public class DirectoryManager {
 		this.eventFileList = eventFileList;
 	}
 	/**
-	 * 
-	 */
-	public boolean isInitialized(){
-		
-		if(sourceFolder.exists() && destinationFolder.exists() && !eventFileList.toString().isEmpty()){
-			return true;
-		}
-		return false;
-	}
-	/**
 	 * @return the totalEventFiles
 	 */
 	public int getTotalEventFiles() {
@@ -129,6 +123,44 @@ public class DirectoryManager {
 		this.eventFilesLeft = eventFilesLeft;
 	}
 	
+	/**
+	 * @return the hasSourceFolder
+	 */
+	public boolean isHasSourceFolder() {
+		return hasSourceFolder;
+	}
+
+	/**
+	 * @param hasSourceFolder the hasSourceFolder to set
+	 */
+	public void setHasSourceFolder(boolean hasSourceFolder) {
+		this.hasSourceFolder = hasSourceFolder;
+	}
+
+	/**
+	 * @return the hasDestinationFolder
+	 */
+	public boolean isHasDestinationFolder() {
+		return hasDestinationFolder;
+	}
+
+	/**
+	 * @param hasDestinationFolder the hasDestinationFolder to set
+	 */
+	public void setHasDestinationFolder(boolean hasDestinationFolder) {
+		this.hasDestinationFolder = hasDestinationFolder;
+	}
+
+	/**
+	 * 
+	 */
+	public boolean foldersConfigured(){
+		if(hasSourceFolder && hasDestinationFolder){
+			return true;
+		}else{
+			return false;
+		}
+	}
 	
 }	
 
