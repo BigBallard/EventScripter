@@ -1,7 +1,8 @@
 package com.champtc.champ.eventscripter;
 
 /**
- * Handles the timer settings.
+ * Handles the timer settings: the upper and lower bounds of the interval, units of the bounds (either 
+ * minutes or seconds), the interval type of each bound. 
  */
 public class TimerManager {
 	private String lowerBoundUnits;
@@ -28,7 +29,8 @@ public class TimerManager {
 	}
 
 	/**
-	 * Sets intervals to send either every set of time or between the upper and lower time bounds.
+	 * Sets intervals to send either on a fixed interval or between a range of time. The only valid inputs 
+	 * are "every" and "between".
 	 * @param intervalType the intervalType to set
 	 */
 	public void setIntervalType(String intervalType) {
@@ -105,5 +107,12 @@ public class TimerManager {
 	 */
 	public void setEventSendPreferences(String eventSendPreference) {
 		this.eventSendPreference = eventSendPreference;
+	}
+	
+	private class InvalidIntervalTypeException extends Exception{
+		public InvalidIntervalTypeException(){super();}
+		public InvalidIntervalTypeException(String message){super(message);}
+		public InvalidIntervalTypeException(String message, Throwable cause){super(message,cause);}
+		public InvalidIntervalTypeException(Throwable cause){super(cause);}
 	}
 }

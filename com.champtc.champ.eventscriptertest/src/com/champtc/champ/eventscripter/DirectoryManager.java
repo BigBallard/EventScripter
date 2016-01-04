@@ -1,11 +1,13 @@
 package com.champtc.champ.eventscripter;
 
 import java.io.File;
+import java.io.FilenameFilter;
 
 /**
  * Manages the source and destination directories and the event file list. Keeps track of total files
- * ,files sent, and files left to send. These numbers are reset when a run process is stopped or a new
- * directory is selected.
+ * ,files sent, and files left to send. Methods are given to reset the file statistics. Boolean members
+ * {@link hasSourceFolder hasSourceFolder} and {@link hasDestinationFolder hasDestinationFolder} are 
+ * intended to be used as flags to enable/disable the run methods.
  */
 public class DirectoryManager {
 	private File sourceFolder;
@@ -26,7 +28,8 @@ public class DirectoryManager {
 	}
 	
 	/**
-	 * 
+	 * Method needs to be used during a run process if an updated file count is desired. Simply
+	 * apply after the code that copy's the file(s).
 	 */
 	public void updateFileCounts(){
 		sentEventFiles ++;
@@ -35,7 +38,8 @@ public class DirectoryManager {
 	}
 	
 	/**
-	 * 
+	 * Resets the file counts at any given time the method is called. Only resets the files left 
+	 * during a running instance and the files sent.
 	 */
 	public void resetFileCounts(){
 		sentEventFiles = 0;
@@ -50,11 +54,22 @@ public class DirectoryManager {
 		return sourceFolder;
 	}
 	/**
-	 * @param sourceFolder the sourceFolder to set
+	 * @param sourceFolder the sourceFolder containing the event files.
 	 */
 	public void setSourceFolder(File sourceFolder) {
-		
 		this.sourceFolder = sourceFolder;
+		File[] files = sourceFolder.listFiles(new FilenameFilter() {
+			
+			@Override
+			public boolean accept(File dir, String name) {
+				if(name.endsWith(".txt")|| name.endsWith(".csv")){
+					return true;
+				}else
+					return false;
+			}
+		});
+		if(getSourceFolder().exists())
+			setEventFileList(files);
 	}
 	/**
 	 * @return the destinationFolder
@@ -63,32 +78,35 @@ public class DirectoryManager {
 		return destinationFolder;
 	}
 	/**
-	 * @param destinationFolder the destinationFolder to set
+	 * @param destinationFolder the destinationFolder where the the DarkLight monitored folder should be.
 	 */
 	public void setDestinationFolder(File destinationFolder) {
 		this.destinationFolder = destinationFolder;
 	}
 	/**
-	 * @return the eventFileList
+	 * @return the eventFileList as a file array.
 	 */
 	public File[] getEventFileList() {
 		return eventFileList;
 	}
 	/**
-	 * @param eventFileList the eventFileList to set
+	 * @param eventFileList the eventFileList to set. This is implicitly called when the source folder
+	 * is set and is not required anywhere else in the code base unless the {@link setSourceFolder setSourceFolder}
+	 * is not used.
 	 */
 	public void setEventFileList(File[] eventFileList) {
 		setTotalEventFiles(eventFileList);
 		this.eventFileList = eventFileList;
 	}
 	/**
-	 * @return the totalEventFiles
+	 * @return the totalEventFiles as an integer.
 	 */
 	public int getTotalEventFiles() {
 		return totalEventFiles;
 	}
 	/**
-	 * @param totalEventFiles the totalEventFiles to set
+	 * Sets the totalEventFiles member by passing in the fileList from the source folder.
+	 * @param filesList 
 	 */
 	private void setTotalEventFiles(File[] fileList) {
 		int count = 0;
@@ -99,7 +117,7 @@ public class DirectoryManager {
 		this.totalEventFiles = count;
 	}
 	/**
-	 * @return the sentEventFiles
+	 * @return the sentEventFiles integer value.
 	 */
 	public int getSentEventFiles() {
 		return sentEventFiles;
@@ -111,7 +129,7 @@ public class DirectoryManager {
 		this.sentEventFiles = sentEventFiles;
 	}
 	/**
-	 * @return the eventFilesLeft
+	 * @return the eventFilesLeft integer value.
 	 */
 	public int getEventFilesLeft() {
 		return eventFilesLeft;
@@ -152,7 +170,9 @@ public class DirectoryManager {
 	}
 
 	/**
-	 * 
+	 * @return true if both {@link hasSourceFolder hasSourceFolder} and {@link hasDestinationFolder hasDestinationFolder}
+	 * are set to true and false if either {@link hasSourceFolder hasSourceFolder} and {@link hasDestinationFolder hasDestinationFolder}
+	 * are set to false.
 	 */
 	public boolean foldersConfigured(){
 		if(hasSourceFolder && hasDestinationFolder){

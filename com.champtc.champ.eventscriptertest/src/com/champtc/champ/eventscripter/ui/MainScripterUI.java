@@ -35,6 +35,7 @@ public class MainScripterUI {
 		isRunning = false;
 		
 		
+		// Main shell and display
 		Display mainDisplay = new Display();
 		Shell mainScripterShell = new Shell(mainDisplay,NON_RESIZABLE);
 		mainScripterShell.setSize(535,450);
@@ -42,6 +43,8 @@ public class MainScripterUI {
 		
 		mainScripterShell.setBackground(mainDisplay.getSystemColor(SWT.COLOR_WHITE));
 		
+		// FILE HANDLING COMPOSITE
+		// Contains UI regarding interaction between the file system and the DirectoryManager
 		Composite fileHandlingComposite = new Composite(mainScripterShell, SWT.BORDER);
 		fileHandlingComposite.setBounds(5, 5, 520, 125);
 		
@@ -72,14 +75,18 @@ public class MainScripterUI {
 		monitoredDirectoryLabel.setBounds(10, 61, 210, 17);
 		monitoredDirectoryLabel.setText("DarkLight Monitor Folder");
 
-//		FileHandlingComposite FHC = new FileHandlingComposite(mainScripterShell, SWT.NONE, controller);
-//		FHC.setBounds(5, 5, 520, 125);
 		
+		// TIMER MANIPULATION COMPOSITE
+		// Allows the user to manipulate the TimerManager settings. This is the main composite of the timer.
+		// If the user selects for timer based intervals then the inner timer will be active, otherwise if 
+		// set to manual, the inner composite will be disables and will keep the user from manipulating the 
+		// settings.
 		Composite timerManipulationComposite = new Composite(mainScripterShell, SWT.BORDER);
 		timerManipulationComposite.setBounds(5, 135, 230, 125);
 		
-		Composite innerComposite = new Composite(timerManipulationComposite, SWT.NONE);
-		innerComposite.setBounds(10, 29, 195, 98);
+		// Inner composite allows the user to manipulate the TimerManager settings for timer based intervals.
+		Composite innerTimerComposite = new Composite(timerManipulationComposite, SWT.NONE);
+		innerTimerComposite.setBounds(10, 29, 195, 98);
 		
 		Button timeRadioButton = new Button(timerManipulationComposite, SWT.RADIO);
 		timeRadioButton.setSelection(true);
@@ -91,136 +98,54 @@ public class MainScripterUI {
 		manualRadioButton.setText("Manual");
 		
 		
-		Spinner intervalSpinner_1 = new Spinner(innerComposite, SWT.BORDER);
+		Spinner intervalSpinner_1 = new Spinner(innerTimerComposite, SWT.BORDER);
 		intervalSpinner_1.setFont(SWTResourceManager.getFont("Segoe UI", 10, SWT.NORMAL));
 		intervalSpinner_1.setSelection(20);
 		intervalSpinner_1.setBounds(0, 30, 47, 23);
 		intervalSpinner_1.setValues(20, 0, 999, 0, 1, 10);
 		
-		Spinner intervalSpinner_2 = new Spinner(innerComposite, SWT.BORDER);
+		Spinner intervalSpinner_2 = new Spinner(innerTimerComposite, SWT.BORDER);
 		intervalSpinner_2.setEnabled(false);
 		intervalSpinner_2.setSelection(20);
 		intervalSpinner_2.setBounds(0, 62, 47, 23);
 		intervalSpinner_2.setValues(20, 0, 999, 0, 1, 10);
 		
 		String choices[] = {"Seconds","Minutes"};
-		Combo unitCombo_1 = new Combo(innerComposite, SWT.NONE);
+		Combo unitCombo_1 = new Combo(innerTimerComposite, SWT.NONE);
 		unitCombo_1.setBounds(63, 30, 91, 22);
 		unitCombo_1.setItems(choices);
 		unitCombo_1.setText("Seconds");
 		
-		Combo unitCombo_2 = new Combo(innerComposite, SWT.NONE);
+		Combo unitCombo_2 = new Combo(innerTimerComposite, SWT.NONE);
 		unitCombo_2.setEnabled(false);
 		unitCombo_2.setBounds(63, 62, 91, 23);
 		unitCombo_2.setItems(choices);
 		unitCombo_2.setText("Seconds");
 		
-		Button betweenSelectionRadio = new Button(innerComposite, SWT.RADIO);
+		Button betweenSelectionRadio = new Button(innerTimerComposite, SWT.RADIO);
 		betweenSelectionRadio.setText("between");
 		betweenSelectionRadio.setBounds(130, 5, 90, 16);
 		
-		Button everySelectionRadio = new Button(innerComposite, SWT.RADIO);
+		Button everySelectionRadio = new Button(innerTimerComposite, SWT.RADIO);
 		everySelectionRadio.setSelection(true);
 		everySelectionRadio.setBounds(78, 5, 49, 16);
 		everySelectionRadio.setText("every");
 		
-		Label lblCopyText = new Label(innerComposite, SWT.NONE);
+		Label lblCopyText = new Label(innerTimerComposite, SWT.NONE);
 		lblCopyText.setBounds(0, 5, 72, 15);
 		lblCopyText.setText("Copy next file");
 		
-		Label lblAnd = new Label(innerComposite, SWT.NONE);
+		Label lblAnd = new Label(innerTimerComposite, SWT.NONE);
 		lblAnd.setBounds(160, 39, 20, 15);
 		lblAnd.setText("and");
 		
 		
-		timeRadioButton.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				controller.timMan.setEventSendPreferences("timed");
-				if(timeRadioButton.getSelection()){
-					intervalSpinner_1.setEnabled(true);
-					unitCombo_1.setEnabled(true);
-					innerComposite.setVisible(true);
-					if(betweenSelectionRadio.getSelection()){
-						intervalSpinner_2.setEnabled(true);
-						unitCombo_2.setEnabled(true);
-					}
-				}
-			}
-		});
-		
-		manualRadioButton.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				controller.timMan.setEventSendPreferences("manual");
-				if(manualRadioButton.getSelection()){
-					
-					intervalSpinner_1.setEnabled(false);
-					intervalSpinner_2.setEnabled(false);
-					unitCombo_1.setEnabled(false);
-					unitCombo_2.setEnabled(false);
-					innerComposite.setVisible(false);;
-					
-					
-				}
-			}
-		});
-		
-		intervalSpinner_1.addFocusListener(new FocusAdapter() {
-			@Override
-			public void focusLost(FocusEvent e) {
-				controller.timMan.setLowerTimerBound(intervalSpinner_1.getSelection());
-			}
-		});
-		
-		intervalSpinner_2.addFocusListener(new FocusAdapter() {
-			@Override
-			public void focusLost(FocusEvent e) {
-				controller.timMan.setUpperTimerBound(intervalSpinner_2.getSelection());
-			}
-		});
-		
-		unitCombo_1.addFocusListener(new FocusAdapter() {
-			@Override
-			public void focusLost(FocusEvent e) {
-				controller.timMan.setLowerBoundUnits(unitCombo_1.getText().toLowerCase());
-			}
-		});
-		
-		unitCombo_2.addFocusListener(new FocusAdapter() {
-			@Override
-			public void focusLost(FocusEvent e) {
-				controller.timMan.setUpperBoundUnits(unitCombo_2.getText().toLowerCase());
-			}
-		});
-		
-		betweenSelectionRadio.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				intervalSpinner_2.setEnabled(true);
-				unitCombo_2.setEnabled(true);
-				controller.timMan.setIntervalType("between");
-			}
-		});
-		
-		everySelectionRadio.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				intervalSpinner_2.setEnabled(false);
-				unitCombo_2.setEnabled(false);
-				controller.timMan.setIntervalType("every");
-			}
-		});
-	
-
-		
-//		TimerManipulationComposite TMC = new TimerManipulationComposite(mainScripterShell, SWT.NONE, controller);
-//		TMC.setBounds(5, 135, 230, 125);
-		
+		// FILE STATISTICS COMPOSITE 
+		// Displays and updates the file counts during a running timer or series of manual sends. Will continue
+		// the count until the 'reset' button is selected.
 		Composite fileStatisticsComposite = new Composite(mainScripterShell, SWT.BORDER);
 		fileStatisticsComposite.setBounds(240, 135, 285, 125);
 		
-
 		Label lblSourceFiles = new Label(fileStatisticsComposite, SWT.NONE);
 		lblSourceFiles.setForeground(SWTResourceManager.getColor(0, 0, 0));
 		lblSourceFiles.setFont(SWTResourceManager.getFont("Segoe UI", 10, SWT.BOLD));
@@ -271,6 +196,12 @@ public class MainScripterUI {
 		lblTimeLeftUnits.setBounds(216, 31, 55, 15);
 		lblTimeLeftUnits.setText("Seconds");
 		
+		
+		// PLAYER COMPOSITE
+		// Is contained in the file statistics composite. When application is opened the buttons will be disabled
+		// until, at minimum, the source and destination folders are set. Once set, the play button will be enabled to play
+		// on the default settings. If the send preference is set to manual, the pause button will be disabled. When
+		// play is selected for timer based sending, the pause and reset buttons will be enabled and play disabled.
 		Composite playerComposite = new Composite(fileStatisticsComposite, SWT.NONE);
 		playerComposite.setBounds(169, 52, 102, 30);
 		
@@ -289,12 +220,8 @@ public class MainScripterUI {
 		resetButton.setImage(SWTResourceManager.getImage(FileStatisticsComposite.class, "/icons/back.png"));
 		resetButton.setBounds(0, 0, 30, 30);
 		
-		
-//		FileStatisticsComposite FSC = new FileStatisticsComposite(mainScripterShell, SWT.NONE, controller);
-//		FSC.setBounds(240, 135, 285, 125);
-		
-		// listeners
-		// FHC
+
+		// LISTENERS LISTENERS LISTENERS
 		txtSourceFolder.addFocusListener(new FocusAdapter() {
 			@Override
 			public void focusLost(FocusEvent e) {
@@ -390,7 +317,7 @@ public class MainScripterUI {
 				if(timeRadioButton.getSelection()){
 					intervalSpinner_1.setEnabled(true);
 					unitCombo_1.setEnabled(true);
-					innerComposite.setVisible(true);
+					innerTimerComposite.setVisible(true);
 					if(betweenSelectionRadio.getSelection()){
 						intervalSpinner_2.setEnabled(true);
 						unitCombo_2.setEnabled(true);
@@ -411,7 +338,7 @@ public class MainScripterUI {
 					intervalSpinner_2.setEnabled(false);
 					unitCombo_1.setEnabled(false);
 					unitCombo_2.setEnabled(false);
-					innerComposite.setVisible(false);
+					innerTimerComposite.setVisible(false);
 					
 					pauseButton.setVisible(false);
 				}
@@ -522,7 +449,7 @@ public class MainScripterUI {
 	}
 	
 	/**
-	 * 
+	 * This methods resets the sent count and togo count in the ui display.
 	 */
 	public void resetLabelCounts(Label sent, Label togo){
 		sent.setText("0");

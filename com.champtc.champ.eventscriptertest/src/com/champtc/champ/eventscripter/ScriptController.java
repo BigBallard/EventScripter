@@ -9,8 +9,9 @@ import java.util.Random;
 
 
 /**
- * Application controller that manages a DirectoryManager and TimerManager to conduct event 
- * playback or sequence.
+ * Application controller that manages a {@link DirectoryManager#DirectoryManager DirectoryManager}
+ * and {@link TimerManager#TimerManager TimerManager} to conduct event a play-back or sequence. Contains
+ * member variables pauseFlag and resetFlag that are called during a run call.
  *
  */
 public class ScriptController {
@@ -61,20 +62,6 @@ public class ScriptController {
 	 */
 	public void setSourceFolder(String sourcePath){
 		dirMan.setSourceFolder(new File(sourcePath));
-		
-		File dir = new File(sourcePath);
-		File[] files = dir.listFiles(new FilenameFilter() {
-			
-			@Override
-			public boolean accept(File dir, String name) {
-				if(name.endsWith(".txt")|| name.endsWith(".csv")){
-					return true;
-				}else
-					return false;
-			}
-		});
-		if(dirMan.getSourceFolder().exists())
-		dirMan.setEventFileList(files);
 	}
 	
 	/**
@@ -120,6 +107,7 @@ public class ScriptController {
 						sentFlag = true;
 						break;
 					}
+					
 					
 					if(pauseFlag){
 						while(pauseFlag){
