@@ -17,8 +17,8 @@ public class TimerManager {
 		upperBoundUnits = "seconds";
 		intervalType = "every";
 		eventSendPreference = "timed";
-		lowerTimerBound = 20;
-		upperTimerBound = 20;
+		lowerTimerBound = 5;
+		upperTimerBound = 5;
 	}
 	
 	/**

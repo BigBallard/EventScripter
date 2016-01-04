@@ -24,16 +24,18 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.wb.swt.SWTResourceManager;
 
 import com.champtc.champ.eventscripter.ScriptController;
+import com.champtc.champ.eventscripter.ScriptController.RunOnManual;
 
 public class MainScripterUI {
 	private static final int NON_RESIZABLE = SWT.CLOSE | SWT.TITLE | SWT.MIN | SWT.MAX ;
 	private ScriptController controller;
 	private boolean isRunning;
+	private static Thread runningThread;
 	
 	public MainScripterUI(){
 		controller = new ScriptController();
+		runningThread = new Thread(new RunOnManual(controller,runningThread));
 		isRunning = false;
-		
 		
 		// Main shell and display
 		Display mainDisplay = new Display();
@@ -100,15 +102,13 @@ public class MainScripterUI {
 		
 		Spinner intervalSpinner_1 = new Spinner(innerTimerComposite, SWT.BORDER);
 		intervalSpinner_1.setFont(SWTResourceManager.getFont("Segoe UI", 10, SWT.NORMAL));
-		intervalSpinner_1.setSelection(20);
 		intervalSpinner_1.setBounds(0, 30, 47, 23);
-		intervalSpinner_1.setValues(20, 0, 999, 0, 1, 10);
+		intervalSpinner_1.setValues(5, 0, 999, 0, 1, 10);
 		
 		Spinner intervalSpinner_2 = new Spinner(innerTimerComposite, SWT.BORDER);
 		intervalSpinner_2.setEnabled(false);
-		intervalSpinner_2.setSelection(20);
 		intervalSpinner_2.setBounds(0, 62, 47, 23);
-		intervalSpinner_2.setValues(20, 0, 999, 0, 1, 10);
+		intervalSpinner_2.setValues(5, 0, 999, 0, 1, 10);
 		
 		String choices[] = {"Seconds","Minutes"};
 		Combo unitCombo_1 = new Combo(innerTimerComposite, SWT.NONE);
@@ -341,6 +341,7 @@ public class MainScripterUI {
 					innerTimerComposite.setVisible(false);
 					
 					pauseButton.setVisible(false);
+					controller.setPauseFlag(true);
 				}
 			}
 		});
@@ -395,14 +396,16 @@ public class MainScripterUI {
 		playButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				
 				if(isRunning){
 					controller.setPauseFlag(false);
 				}else{
+					playButton.setEnabled(false);
+					pauseButton.setEnabled(true);
 					try {
 						play();
 						resetLabelCounts(lblSentCount, lblToGoCount);
 					} catch (IOException e1) {
-						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					}
 				}
@@ -413,7 +416,12 @@ public class MainScripterUI {
 			
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				controller.setPauseFlag(true);
+//				try {
+//					runningThread.wait();
+//				} catch (InterruptedException e1) {
+//					e1.printStackTrace();
+//				}
+//				pauseButton.setEnabled(false);
 			}
 			
 		});
@@ -434,7 +442,7 @@ public class MainScripterUI {
 		}
 		mainDisplay.dispose();
 	}
-	
+
 	/**
 	 * 
 	 * @param controller
@@ -466,11 +474,12 @@ public class MainScripterUI {
 		
 		if(controller.timMan.getEventSendPreferences().equalsIgnoreCase("manual")){
 			isRunning = true;
-			controller.runOnManual();
+			runningThread.start();
+			
 			
 		}else if(controller.timMan.getEventSendPreferences().equalsIgnoreCase("timed")){
 			isRunning = true;
-			controller.runOnTimer();
+			runningThread.start();
 		}
 		
 		isRunning = false;
