@@ -70,7 +70,6 @@ public class ScriptController {
 		
 	}	
 	
-	
 	/**
 	 * 
 	 * @author Dallas
@@ -106,6 +105,8 @@ public class ScriptController {
 			System.out.println("Event " + dirMan.getSentEventFiles());
 			File dest = new File(dirMan.getDestinationFolder() + "\\" + f.getName());
 			Files.copy(f.toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
+			
+			//TODO manual control 
 		}
 		dirMan.resetFileCounts();
 		return;
@@ -126,12 +127,12 @@ public class ScriptController {
 		
 		@Override
 		public void run(){
-			try{
-				synchronized(this){
+			if(!controller.hasPauseFlag()){
+				try {
 					controller.runOnTimer();
+				} catch (IOException e) {
+					e.printStackTrace();
 				}
-			} catch (IOException e) {
-				e.printStackTrace();
 			}
 		}
 	};

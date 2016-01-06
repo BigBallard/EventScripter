@@ -3,6 +3,9 @@ package com.champtc.champ.eventscripter.ui;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.FocusAdapter;
@@ -31,14 +34,17 @@ public class MainScripterUI {
 	private static final int NON_RESIZABLE = SWT.CLOSE | SWT.TITLE | SWT.MIN | SWT.MAX ;
 	private ScriptController controller;
 	private boolean isRunning;
-	private static Thread timerThread;
-	private static Thread manualThread;
+	private static Runnable timerThread;
+	private static Runnable manualThread;
+	private static ExecutorService executor;
 	
 	public MainScripterUI(){
 		controller = new ScriptController();
-		timerThread = new Thread(new RunOnTimer(controller));
-		manualThread = new Thread(new RunOnManual(controller));
+		timerThread = new RunOnTimer(controller);
+		manualThread = new RunOnManual(controller);
 		isRunning = false;
+		executor = Executors.newSingleThreadExecutor();
+		
 		
 		// Main shell and display
 		Display mainDisplay = new Display();
@@ -418,15 +424,11 @@ public class MainScripterUI {
 			
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				if(timerThread.isAlive()){
-					try {
-						timerThread.wait();
-					} catch (InterruptedException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
+				try {
+					executor.wait();
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
 				}
-				
 				pauseButton.setEnabled(false);
 				playButton.setEnabled(true);
 			}
@@ -448,6 +450,7 @@ public class MainScripterUI {
 				mainDisplay.sleep();
 		}
 		mainDisplay.dispose();
+		
 	}
 
 	/**
@@ -481,15 +484,13 @@ public class MainScripterUI {
 		
 		if(controller.timMan.getEventSendPreferences().equalsIgnoreCase("manual")){
 			isRunning = true;
-			manualThread.start();
 			
 			
 		}else if(controller.timMan.getEventSendPreferences().equalsIgnoreCase("timed")){
 			isRunning = true;
-			timerThread.start();
+			executor.execute(timerThread);
 		}
 		
-		isRunning = false;
 		return;
 	}
 }
