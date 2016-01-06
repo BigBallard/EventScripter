@@ -25,16 +25,19 @@ import org.eclipse.wb.swt.SWTResourceManager;
 
 import com.champtc.champ.eventscripter.ScriptController;
 import com.champtc.champ.eventscripter.ScriptController.RunOnManual;
+import com.champtc.champ.eventscripter.ScriptController.RunOnTimer;
 
 public class MainScripterUI {
 	private static final int NON_RESIZABLE = SWT.CLOSE | SWT.TITLE | SWT.MIN | SWT.MAX ;
 	private ScriptController controller;
 	private boolean isRunning;
-	private static Thread runningThread;
+	private static Thread timerThread;
+	private static Thread manualThread;
 	
 	public MainScripterUI(){
 		controller = new ScriptController();
-		runningThread = new Thread(new RunOnManual(controller,runningThread));
+		timerThread = new Thread(new RunOnTimer(controller));
+		manualThread = new Thread(new RunOnManual(controller));
 		isRunning = false;
 		
 		// Main shell and display
@@ -398,13 +401,12 @@ public class MainScripterUI {
 			public void widgetSelected(SelectionEvent e) {
 				
 				if(isRunning){
-					controller.setPauseFlag(false);
+					// TODO if isRunning is true then this implies that the sending thread has been suspended and needs to be continued
 				}else{
 					playButton.setEnabled(false);
 					pauseButton.setEnabled(true);
 					try {
 						play();
-						resetLabelCounts(lblSentCount, lblToGoCount);
 					} catch (IOException e1) {
 						e1.printStackTrace();
 					}
@@ -416,12 +418,17 @@ public class MainScripterUI {
 			
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-//				try {
-//					runningThread.wait();
-//				} catch (InterruptedException e1) {
-//					e1.printStackTrace();
-//				}
-//				pauseButton.setEnabled(false);
+				if(timerThread.isAlive()){
+					try {
+						timerThread.wait();
+					} catch (InterruptedException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				}
+				
+				pauseButton.setEnabled(false);
+				playButton.setEnabled(true);
 			}
 			
 		});
@@ -474,12 +481,12 @@ public class MainScripterUI {
 		
 		if(controller.timMan.getEventSendPreferences().equalsIgnoreCase("manual")){
 			isRunning = true;
-			runningThread.start();
+			manualThread.start();
 			
 			
 		}else if(controller.timMan.getEventSendPreferences().equalsIgnoreCase("timed")){
 			isRunning = true;
-			runningThread.start();
+			timerThread.start();
 		}
 		
 		isRunning = false;

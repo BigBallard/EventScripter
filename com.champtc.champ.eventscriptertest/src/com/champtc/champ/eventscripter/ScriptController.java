@@ -15,14 +15,12 @@ import java.util.Random;
  *
  */
 public class ScriptController {
-	private Util U;
 	public DirectoryManager dirMan;
 	public TimerManager timMan;
 	private boolean pauseFlag;
 	private boolean resetFlag;
 	
 	public ScriptController(){
-		U = new Util();
 		dirMan = new DirectoryManager();
 		timMan = new TimerManager();
 		pauseFlag = false;
@@ -72,8 +70,37 @@ public class ScriptController {
 		
 	}	
 	
+	
+	/**
+	 * 
+	 * @author Dallas
+	 *
+	 */
+	public static class RunOnManual implements Runnable{
+		
+		ScriptController controller;
+		
+		public RunOnManual(ScriptController c){
+			controller = c;
+		}
+		
+		@Override
+		public void run(){
+			
+			try {
+				controller.runOnManual();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			
+		}
+	};
+	
+	/**
+	 * 
+	 */
 	public void runOnManual() throws IOException{
-
+		
 		for(File f : dirMan.getEventFileList()){
 			dirMan.updateFileCounts();
 			System.out.println("Event " + dirMan.getSentEventFiles());
@@ -84,26 +111,30 @@ public class ScriptController {
 		return;
 	}
 	
-	public static class RunOnManual implements Runnable{
+	/**
+	 * 
+	 * @author Dallas
+	 *
+	 */
+	public static class RunOnTimer implements Runnable{
 		
 		ScriptController controller;
-		Thread thread;
 		
-		public RunOnManual(ScriptController c, Thread tr){
-			thread = tr;
+		public RunOnTimer(ScriptController c){
 			controller = c;
 		};
 		
 		@Override
 		public void run(){
-			try {
-				controller.runOnTimer();
+			try{
+				synchronized(this){
+					controller.runOnTimer();
+				}
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
-	}
+	};
 	
 	/**
 	 * 
@@ -128,22 +159,6 @@ public class ScriptController {
 				System.out.println("Event " + dirMan.getSentEventFiles());
 				File dest = new File(dirMan.getDestinationFolder() + "\\" + f.getName());
 				Files.copy(f.toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
-					
-					
-//					if(pauseFlag){
-//						while(pauseFlag){
-//							if(resetFlag){
-//								dirMan.resetFileCounts();
-//								return;
-//							}
-//						}
-//						break;
-//					}
-					
-//					if(resetFlag){
-//						dirMan.resetFileCounts();
-//						return;
-//					}
 					
 		}
 		dirMan.resetFileCounts();
