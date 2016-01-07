@@ -33,7 +33,6 @@ import com.champtc.champ.eventscripter.ScriptController.RunOnTimer;
 public class MainScripterUI {
 	private static final int NON_RESIZABLE = SWT.CLOSE | SWT.TITLE | SWT.MIN | SWT.MAX ;
 	private ScriptController controller;
-	private boolean isRunning;
 	private static Runnable timerThread;
 	private static Runnable manualThread;
 	private static ExecutorService executor;
@@ -42,7 +41,6 @@ public class MainScripterUI {
 		controller = new ScriptController();
 		timerThread = new RunOnTimer(controller);
 		manualThread = new RunOnManual(controller);
-		isRunning = false;
 		executor = Executors.newSingleThreadExecutor();
 		
 		
@@ -406,8 +404,10 @@ public class MainScripterUI {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				
-				if(isRunning){
-					// TODO if isRunning is true then this implies that the sending thread has been suspended and needs to be continued
+				if(controller.isRunning()){
+					controller.setPauseFlag(false);
+					playButton.setEnabled(false);
+					pauseButton.setEnabled(true);
 				}else{
 					playButton.setEnabled(false);
 					pauseButton.setEnabled(true);
@@ -424,11 +424,9 @@ public class MainScripterUI {
 			
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				try {
-					executor.wait();
-				} catch (InterruptedException e1) {
-					e1.printStackTrace();
-				}
+
+				controller.setPauseFlag(true);
+				
 				pauseButton.setEnabled(false);
 				playButton.setEnabled(true);
 			}
@@ -483,11 +481,11 @@ public class MainScripterUI {
 	public void play() throws IOException{
 		
 		if(controller.timMan.getEventSendPreferences().equalsIgnoreCase("manual")){
-			isRunning = true;
+			controller.setRunning(true);
 			
 			
 		}else if(controller.timMan.getEventSendPreferences().equalsIgnoreCase("timed")){
-			isRunning = true;
+			controller.setRunning(true);
 			executor.execute(timerThread);
 		}
 		

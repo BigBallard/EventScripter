@@ -1,5 +1,6 @@
 package com.champtc.champ.eventscripter;
 
+import java.awt.SecondaryLoop;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -19,12 +20,16 @@ public class ScriptController {
 	public TimerManager timMan;
 	private boolean pauseFlag;
 	private boolean resetFlag;
+	private boolean sendFlag;
+	private boolean isRunning;
 	
 	public ScriptController(){
 		dirMan = new DirectoryManager();
 		timMan = new TimerManager();
 		pauseFlag = false;
 		resetFlag = false;
+		sendFlag = false;
+		isRunning = false;
 	}
 	
 	/**
@@ -68,8 +73,25 @@ public class ScriptController {
 	public void setDestinationFolder(String sourcePath){
 		dirMan.setDestinationFolder(new File(sourcePath));
 		
-	}	
+	}
 	
+	/**
+	 * 
+	 * @return
+	 */
+	public boolean isRunning() {
+		return isRunning;
+	}
+
+	/**
+	 * 
+	 * @param isRunning
+	 */
+	public void setRunning(boolean isRunning) {
+		this.isRunning = isRunning;
+	}
+
+
 	/**
 	 * 
 	 * @author Dallas
@@ -101,14 +123,21 @@ public class ScriptController {
 	public void runOnManual() throws IOException{
 		
 		for(File f : dirMan.getEventFileList()){
+			
+			while(!sendFlag){
+				if(resetFlag){return;}
+			}
+			if(resetFlag){return;}
+			
+			sendFlag = false;
+			
 			dirMan.updateFileCounts();
 			System.out.println("Event " + dirMan.getSentEventFiles());
 			File dest = new File(dirMan.getDestinationFolder() + "\\" + f.getName());
 			Files.copy(f.toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
-			
-			//TODO manual control 
 		}
 		dirMan.resetFileCounts();
+		isRunning = false;
 		return;
 	}
 	
@@ -145,24 +174,33 @@ public class ScriptController {
 		
 		for(File f : dirMan.getEventFileList()){
 			int randomTimeValue = 0;
-				int range = timMan.getUpperTimerBound() - timMan.getLowerTimerBound();
-				if(range > 0)
-					randomTimeValue = (new Random().nextInt(timMan.getUpperTimerBound() - timMan.getLowerTimerBound()) + 0);
-				
-				try {
-					Thread.sleep(1000 * (randomTimeValue + timMan.getLowerTimerBound()));
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+			int range = timMan.getUpperTimerBound() - timMan.getLowerTimerBound();
+			if(range > 0)
+				randomTimeValue = (new Random().nextInt(timMan.getUpperTimerBound() - timMan.getLowerTimerBound()) + 0);
+			
+			int timerValue = randomTimeValue + timMan.getLowerTimerBound();
+			try {
+				while(timerValue >= 0){
+					Thread.sleep(1000L);
+					timerValue--;
+					while(pauseFlag){
+						if(resetFlag){return;}
+					}
+					if(resetFlag){return;}
 				}
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			dirMan.updateFileCounts();
+			System.out.println("Event " + dirMan.getSentEventFiles());
+			File dest = new File(dirMan.getDestinationFolder() + "\\" + f.getName());
+			Files.copy(f.toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
 				
-				dirMan.updateFileCounts();
-				System.out.println("Event " + dirMan.getSentEventFiles());
-				File dest = new File(dirMan.getDestinationFolder() + "\\" + f.getName());
-				Files.copy(f.toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
-					
 		}
 		dirMan.resetFileCounts();
+		isRunning = false;
 		return;
 	}
 	
