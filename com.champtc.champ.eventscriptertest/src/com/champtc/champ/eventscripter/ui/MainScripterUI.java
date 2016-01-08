@@ -33,15 +33,9 @@ import com.champtc.champ.eventscripter.ScriptController.RunOnTimer;
 public class MainScripterUI {
 	private static final int NON_RESIZABLE = SWT.CLOSE | SWT.TITLE | SWT.MIN | SWT.MAX ;
 	private ScriptController controller;
-	private static Runnable timerThread;
-	private static Runnable manualThread;
-	private static ExecutorService executor;
 	
 	public MainScripterUI(){
 		controller = new ScriptController();
-		timerThread = new RunOnTimer(controller);
-		manualThread = new RunOnManual(controller);
-		executor = Executors.newSingleThreadExecutor();
 		
 		
 		// Main shell and display
@@ -100,7 +94,7 @@ public class MainScripterUI {
 		Button timeRadioButton = new Button(timerManipulationComposite, SWT.RADIO);
 		timeRadioButton.setSelection(true);
 		timeRadioButton.setBounds(10, 8, 90, 20);
-		timeRadioButton.setText("Timed");
+		timeRadioButton.setText("Timer");
 		
 		Button manualRadioButton = new Button(timerManipulationComposite, SWT.RADIO);
 		manualRadioButton.setBounds(106, 10, 90, 16);
@@ -320,7 +314,8 @@ public class MainScripterUI {
 		timeRadioButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				controller.timMan.setEventSendPreferences("timed");
+				controller.timMan.setEventSendPreferences("timer");
+				controller.reset();
 				if(timeRadioButton.getSelection()){
 					intervalSpinner_1.setEnabled(true);
 					unitCombo_1.setEnabled(true);
@@ -339,6 +334,7 @@ public class MainScripterUI {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				controller.timMan.setEventSendPreferences("manual");
+				controller.reset();
 				if(manualRadioButton.getSelection()){
 					
 					intervalSpinner_1.setEnabled(false);
@@ -403,18 +399,31 @@ public class MainScripterUI {
 		playButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				resetButton.setEnabled(true);
 				
-				if(controller.isRunning()){
-					controller.setPauseFlag(false);
-					playButton.setEnabled(false);
-					pauseButton.setEnabled(true);
+				if(controller.timMan.getEventSendPreferences().equalsIgnoreCase("timer")){
+					if(controller.isRunning()){
+						controller.setPauseFlag(false);
+						playButton.setEnabled(false);
+						pauseButton.setEnabled(true);
+					}else{
+						playButton.setEnabled(false);
+						pauseButton.setEnabled(true);
+						try {
+							controller.play();
+						} catch (IOException | InterruptedException e1) {
+							e1.printStackTrace();
+						}
+					}
 				}else{
-					playButton.setEnabled(false);
-					pauseButton.setEnabled(true);
-					try {
-						play();
-					} catch (IOException e1) {
-						e1.printStackTrace();
+					if(controller.isRunning()){
+						controller.setSendFlag(true);
+					}else{
+						try {
+							controller.play();
+						} catch (IOException | InterruptedException e1) {
+							e1.printStackTrace();
+						}
 					}
 				}
 			}
@@ -437,7 +446,10 @@ public class MainScripterUI {
 			
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				controller.setResetFlag(true);
+				controller.reset();
+				playButton.setEnabled(true);
+				resetButton.setEnabled(false);
+				pauseButton.setEnabled(false);
 			}
 		});
 		
@@ -450,14 +462,14 @@ public class MainScripterUI {
 		mainDisplay.dispose();
 		
 	}
-
+	
 	/**
 	 * 
 	 * @param controller
 	 * @param playButton
 	 */
 	public void playButtonCheck(ScriptController controller,Button playButton){
-		if(controller.dirMan.foldersConfigured()){
+		if(controller.dirMan.foldersConfigured() && controller.dirMan.getTotalEventFiles() > 0){
 			playButton.setEnabled(true);
 		}else{
 			playButton.setEnabled(false);
@@ -474,21 +486,4 @@ public class MainScripterUI {
 		return;
 	}
 	
-	/**
-	 * 
-	 * @throws IOException
-	 */
-	public void play() throws IOException{
-		
-		if(controller.timMan.getEventSendPreferences().equalsIgnoreCase("manual")){
-			controller.setRunning(true);
-			
-			
-		}else if(controller.timMan.getEventSendPreferences().equalsIgnoreCase("timed")){
-			controller.setRunning(true);
-			executor.execute(timerThread);
-		}
-		
-		return;
-	}
 }

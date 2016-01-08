@@ -13,14 +13,12 @@ public class DirectoryManager {
 	private File sourceFolder;
 	private File destinationFolder;
 	private File[] eventFileList;
-	private int totalEventFiles;
 	private int sentEventFiles;
 	private int eventFilesLeft;
 	boolean hasSourceFolder;
 	boolean hasDestinationFolder;
 	
 	public DirectoryManager(){
-		totalEventFiles = 0;
 		sentEventFiles = 0;
 		eventFilesLeft = 0;
 		hasSourceFolder = false;
@@ -33,7 +31,7 @@ public class DirectoryManager {
 	 */
 	public void updateFileCounts(){
 		sentEventFiles ++;
-		eventFilesLeft = totalEventFiles - sentEventFiles;
+		eventFilesLeft = eventFileList.length - sentEventFiles;
 		return;
 	}
 	
@@ -58,18 +56,8 @@ public class DirectoryManager {
 	 */
 	public void setSourceFolder(File sourceFolder) {
 		this.sourceFolder = sourceFolder;
-		File[] files = sourceFolder.listFiles(new FilenameFilter() {
-			
-			@Override
-			public boolean accept(File dir, String name) {
-				if(name.endsWith(".txt")|| name.endsWith(".csv")){
-					return true;
-				}else
-					return false;
-			}
-		});
-		if(getSourceFolder().exists())
-			setEventFileList(files);
+		File[] files = sourceFolder.listFiles();
+		setEventFileList(files);
 	}
 	/**
 	 * @return the destinationFolder
@@ -95,26 +83,14 @@ public class DirectoryManager {
 	 * is not used.
 	 */
 	public void setEventFileList(File[] eventFileList) {
-		setTotalEventFiles(eventFileList);
 		this.eventFileList = eventFileList;
 	}
 	/**
 	 * @return the totalEventFiles as an integer.
 	 */
 	public int getTotalEventFiles() {
-		return totalEventFiles;
-	}
-	/**
-	 * Sets the totalEventFiles member by passing in the fileList from the source folder.
-	 * @param filesList 
-	 */
-	private void setTotalEventFiles(File[] fileList) {
-		int count = 0;
-		for(File f: fileList){
-			count++;
-		}
-		setEventFilesLeft(count);
-		this.totalEventFiles = count;
+		
+		return eventFileList.length;
 	}
 	/**
 	 * @return the sentEventFiles integer value.
@@ -175,11 +151,7 @@ public class DirectoryManager {
 	 * are set to false.
 	 */
 	public boolean foldersConfigured(){
-		if(hasSourceFolder && hasDestinationFolder){
-			return true;
-		}else{
-			return false;
-		}
+		return (hasSourceFolder && hasDestinationFolder);
 	}
 	
 }	

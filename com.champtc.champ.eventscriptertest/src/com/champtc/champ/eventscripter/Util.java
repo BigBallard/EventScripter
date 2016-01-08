@@ -6,26 +6,19 @@ public class Util {
 		return;
 	}
 	
-	public int nanoToSecond(long value){
-		int seconds = (int)value / 1000000000;
+	public int nanoToSeconds(long nano){
+		int seconds = (int)nano / 1000000000;
 		return seconds;
 	}
 	
-	public int nanoToMinute(int value){
-		int seconds = value / 1000000000;
-		int remainingSeconds = seconds % 60;
-		int minutes = (seconds - remainingSeconds) / 60;
-		return value;
+	public int milliToSeconds(long milli){
+		int seconds = (int)milli/1000;
+		return seconds;
 	}
 	
-	public int secondToMinute(int value){
-		
-		return value;
-	}
-	
-	public int minuteToSecond(int value){
-		
-		return value;
+	public int minutesToSeconds(int minutes){
+		int seconds = minutes * 60;
+		return seconds; 
 	}
 
 }

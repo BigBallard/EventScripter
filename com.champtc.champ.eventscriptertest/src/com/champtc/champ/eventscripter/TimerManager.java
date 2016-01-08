@@ -16,7 +16,7 @@ public class TimerManager {
 		lowerBoundUnits = "seconds";
 		upperBoundUnits = "seconds";
 		intervalType = "every";
-		eventSendPreference = "timed";
+		eventSendPreference = "timer";
 		lowerTimerBound = 5;
 		upperTimerBound = 5;
 	}
@@ -107,12 +107,5 @@ public class TimerManager {
 	 */
 	public void setEventSendPreferences(String eventSendPreference) {
 		this.eventSendPreference = eventSendPreference;
-	}
-	
-	private class InvalidIntervalTypeException extends Exception{
-		public InvalidIntervalTypeException(){super();}
-		public InvalidIntervalTypeException(String message){super(message);}
-		public InvalidIntervalTypeException(String message, Throwable cause){super(message,cause);}
-		public InvalidIntervalTypeException(Throwable cause){super(cause);}
 	}
 }
