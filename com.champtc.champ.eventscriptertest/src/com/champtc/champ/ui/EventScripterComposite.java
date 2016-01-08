@@ -1,0 +1,620 @@
+package com.champtc.champ.ui;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.concurrent.Executors;
+
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.FocusAdapter;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Spinner;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.wb.swt.SWTResourceManager;
+
+import com.champtc.champ.eventscripter.ui.FileStatisticsComposite;
+import com.champtc.champ.model.DirectoryManager;
+import com.champtc.champ.model.DirectoryManagerListener;
+import com.champtc.champ.timer.TimerListener;
+import com.champtc.champ.timer.TimerManager;
+import com.champtc.champ.timer.TimerManager.EventSendPreference;
+import com.champtc.champ.timer.TimerManager.IntervalType;
+import com.champtc.champ.timer.TimerManager.IntervalUnitType;
+
+public class EventScripterComposite extends Composite {
+
+	
+	private TimerManager timerManager;
+	private DirectoryManager directoryManager;
+	private Text txtSourceFolder;
+	private Text txtMonitoredFolder;
+	private Button sourceBrowseButton;
+	private Button monitoredBrowseButton;
+	private Spinner intervalSpinner_1;
+	private Spinner intervalSpinner_2;
+	private Button timeRadioButton;
+	private Button manualRadioButton;
+	private Composite innerTimerComposite;
+	private Combo unitCombo_1;
+	private Combo unitCombo_2;
+	private Button betweenSelectionRadio;
+	private Button everySelectionRadio;
+	private Button playButton;
+	private Button pauseButton;
+	private Button resetButton;
+	private Label lblToGoCount;
+	private Label lblSentCount;
+	private Label lblTotalCount;
+
+	/**
+	 * Create the composite.
+	 * @param parent
+	 * @param style
+	 */
+	public EventScripterComposite(Composite parent, int style, Display mainDisplay) {
+		super(parent, style);
+		
+		timerManager = new TimerManager();
+		directoryManager = new DirectoryManager();
+		initUI(parent, mainDisplay); 
+		initListeners(parent, mainDisplay);
+		
+
+	}
+	private void initUI(Composite mainScripterShell, Display mainDisplay){
+		// FILE HANDLING COMPOSITE
+				// Contains UI regarding interaction between the file system and the DirectoryManager
+				Composite fileHandlingComposite = new Composite(mainScripterShell, SWT.BORDER);
+				fileHandlingComposite.setBounds(5, 5, 520, 125);
+				
+				txtSourceFolder = new Text(fileHandlingComposite, SWT.BORDER);
+				txtSourceFolder.setFont(SWTResourceManager.getFont("Segoe UI", 10, SWT.NORMAL));
+				txtSourceFolder.setBounds(10, 30, 400, 25);
+				
+				txtMonitoredFolder = new Text(fileHandlingComposite, SWT.BORDER);
+				txtMonitoredFolder.setFont(SWTResourceManager.getFont("Segoe UI", 10, SWT.NORMAL));
+				txtMonitoredFolder.setBounds(10, 80, 400, 25);
+				
+				sourceBrowseButton = new Button(fileHandlingComposite, SWT.NONE);
+				sourceBrowseButton.setBounds(420, 30, 85, 25);
+				sourceBrowseButton.setText("Browse");
+				
+				Label sourceDirectoryLabel = new Label(fileHandlingComposite, SWT.NONE);
+				sourceDirectoryLabel.setFont(SWTResourceManager.getFont("Segoe UI", 10, SWT.NORMAL));
+				sourceDirectoryLabel.setBounds(10, 10, 200, 17);
+				sourceDirectoryLabel.setText("Numbered Source Files Directory");
+				
+				monitoredBrowseButton = new Button(fileHandlingComposite, SWT.NONE);
+				monitoredBrowseButton.setBounds(420, 80, 85, 25);
+				monitoredBrowseButton.setText("Browse");
+				fileHandlingComposite.setTabList(new Control[]{txtSourceFolder, txtMonitoredFolder, sourceBrowseButton, monitoredBrowseButton});
+				
+				Label monitoredDirectoryLabel = new Label(fileHandlingComposite, SWT.NONE);
+				monitoredDirectoryLabel.setFont(SWTResourceManager.getFont("Segoe UI", 10, SWT.NORMAL));
+				monitoredDirectoryLabel.setBounds(10, 61, 210, 17);
+				monitoredDirectoryLabel.setText("DarkLight Monitor Folder");
+
+				
+				// TIMER MANIPULATION COMPOSITE
+				// Allows the user to manipulate the TimerManager settings. This is the main composite of the timer.
+				// If the user selects for timer based intervals then the inner timer will be active, otherwise if 
+				// set to manual, the inner composite will be disables and will keep the user from manipulating the 
+				// settings.
+				Composite timerManipulationComposite = new Composite(mainScripterShell, SWT.BORDER);
+				timerManipulationComposite.setBounds(5, 135, 230, 125);
+				
+				innerTimerComposite = new Composite(timerManipulationComposite, SWT.NONE);
+				innerTimerComposite.setBounds(10, 29, 195, 98);
+				
+				timeRadioButton = new Button(timerManipulationComposite, SWT.RADIO);
+				timeRadioButton.setSelection(true);
+				timeRadioButton.setBounds(10, 8, 90, 20);
+				timeRadioButton.setText("Timer");
+				
+				manualRadioButton = new Button(timerManipulationComposite, SWT.RADIO);
+				manualRadioButton.setBounds(106, 10, 90, 16);
+				manualRadioButton.setText("Manual");
+				
+				
+				intervalSpinner_1 = new Spinner(innerTimerComposite, SWT.BORDER);
+				intervalSpinner_1.setFont(SWTResourceManager.getFont("Segoe UI", 10, SWT.NORMAL));
+				intervalSpinner_1.setBounds(0, 30, 47, 23);
+				intervalSpinner_1.setValues(5, 0, 999, 0, 1, 10);
+				
+				intervalSpinner_2 = new Spinner(innerTimerComposite, SWT.BORDER);
+				intervalSpinner_2.setEnabled(false);
+				intervalSpinner_2.setBounds(0, 62, 47, 23);
+				intervalSpinner_2.setValues(5, 0, 999, 0, 1, 10);
+				
+				String choices[] = {"Seconds","Minutes"};
+				unitCombo_1 = new Combo(innerTimerComposite, SWT.NONE);
+				unitCombo_1.setBounds(63, 30, 91, 22);
+				unitCombo_1.setItems(choices);
+				unitCombo_1.setText("Seconds");
+				
+				unitCombo_2 = new Combo(innerTimerComposite, SWT.NONE);
+				unitCombo_2.setEnabled(false);
+				unitCombo_2.setBounds(63, 62, 91, 23);
+				unitCombo_2.setItems(choices);
+				unitCombo_2.setText("Seconds");
+				
+				betweenSelectionRadio = new Button(innerTimerComposite, SWT.RADIO);
+				betweenSelectionRadio.setText("between");
+				betweenSelectionRadio.setBounds(130, 5, 90, 16);
+				
+				everySelectionRadio = new Button(innerTimerComposite, SWT.RADIO);
+				everySelectionRadio.setSelection(true);
+				everySelectionRadio.setBounds(78, 5, 49, 16);
+				everySelectionRadio.setText("every");
+				
+				Label lblCopyText = new Label(innerTimerComposite, SWT.NONE);
+				lblCopyText.setBounds(0, 5, 72, 15);
+				lblCopyText.setText("Copy next file");
+				
+				Label lblAnd = new Label(innerTimerComposite, SWT.NONE);
+				lblAnd.setBounds(160, 39, 20, 15);
+				lblAnd.setText("and");
+				
+				
+				// FILE STATISTICS COMPOSITE 
+				// Displays and updates the file counts during a running timer or series of manual sends. Will continue
+				// the count until the 'reset' button is selected.
+				Composite fileStatisticsComposite = new Composite(mainScripterShell, SWT.BORDER);
+				fileStatisticsComposite.setBounds(240, 135, 285, 125);
+				
+				Label lblSourceFiles = new Label(fileStatisticsComposite, SWT.NONE);
+				lblSourceFiles.setForeground(SWTResourceManager.getColor(0, 0, 0));
+				lblSourceFiles.setFont(SWTResourceManager.getFont("Segoe UI", 10, SWT.BOLD));
+				lblSourceFiles.setBounds(10, 10, 85, 15);
+				lblSourceFiles.setText("Source Files");
+				
+				Label lblTotal = new Label(fileStatisticsComposite, SWT.NONE);
+				lblTotal.setAlignment(SWT.RIGHT);
+				lblTotal.setBounds(10, 31, 40, 15);
+				lblTotal.setText("Total:");
+				
+				Label lblSent = new Label(fileStatisticsComposite, SWT.NONE);
+				lblSent.setAlignment(SWT.RIGHT);
+				lblSent.setBounds(10, 52, 40, 15);
+				lblSent.setText("Sent:");
+				
+				Label lblToGo = new Label(fileStatisticsComposite, SWT.NONE);
+				lblToGo.setAlignment(SWT.RIGHT);
+				lblToGo.setBounds(10, 73, 40, 15);
+				lblToGo.setText("To Go:");
+				
+				lblTotalCount = new Label(fileStatisticsComposite, SWT.NONE);
+				lblTotalCount.setAlignment(SWT.RIGHT);
+				lblTotalCount.setBounds(61, 31, 55, 15);
+				lblTotalCount.setText("0");
+				
+				lblSentCount = new Label(fileStatisticsComposite, SWT.NONE);
+				lblSentCount.setAlignment(SWT.RIGHT);
+				lblSentCount.setBounds(61, 52, 55, 15);
+				lblSentCount.setText("0");
+				
+				lblToGoCount = new Label(fileStatisticsComposite, SWT.NONE);
+				lblToGoCount.setAlignment(SWT.RIGHT);
+				lblToGoCount.setBounds(61, 73, 55, 15);
+				lblToGoCount.setText("0");
+				
+				Label lblTimeToNext = new Label(fileStatisticsComposite, SWT.NONE);
+				lblTimeToNext.setFont(SWTResourceManager.getFont("Segoe UI", 10, SWT.BOLD));
+				lblTimeToNext.setBounds(165, 10, 106, 15);
+				lblTimeToNext.setText("Time to next file");
+				
+				Label lblTimeLeft = new Label(fileStatisticsComposite, SWT.NONE);
+				lblTimeLeft.setAlignment(SWT.RIGHT);
+				lblTimeLeft.setBounds(165, 31, 40, 15);
+				lblTimeLeft.setText("0 :");
+				
+				Label lblTimeLeftUnits = new Label(fileStatisticsComposite, SWT.NONE);
+				lblTimeLeftUnits.setBounds(216, 31, 55, 15);
+				lblTimeLeftUnits.setText("Seconds");
+				
+				
+				// PLAYER COMPOSITE
+				// Is contained in the file statistics composite. When application is opened the buttons will be disabled
+				// until, at minimum, the source and destination folders are set. Once set, the play button will be enabled to play
+				// on the default settings. If the send preference is set to manual, the pause button will be disabled. When
+				// play is selected for timer based sending, the pause and reset buttons will be enabled and play disabled.
+				Composite playerComposite = new Composite(fileStatisticsComposite, SWT.NONE);
+				playerComposite.setBounds(169, 52, 102, 30);
+				
+				playButton = new Button(playerComposite, SWT.NONE);
+				playButton.setEnabled(false);
+				playButton.setImage(SWTResourceManager.getImage(FileStatisticsComposite.class, "/icons/play-arrow.png"));
+				playButton.setBounds(72, 0, 30, 30);
+				
+				pauseButton = new Button(playerComposite, SWT.NONE);
+				pauseButton.setEnabled(false);
+				pauseButton.setImage(SWTResourceManager.getImage(FileStatisticsComposite.class, "/icons/pause.png"));
+				pauseButton.setBounds(36, 0, 30, 30);
+				
+				resetButton = new Button(playerComposite, SWT.NONE);
+				resetButton.setEnabled(false);
+				resetButton.setImage(SWTResourceManager.getImage(FileStatisticsComposite.class, "/icons/back.png"));
+				resetButton.setBounds(0, 0, 30, 30);
+				
+
+	}
+	
+
+	
+	private void initListeners(Composite mainScripterShell, Display mainDisplay) {
+		
+		
+		// LISTENERS LISTENERS LISTENERS
+		txtSourceFolder.addFocusListener(new FocusAdapter() {
+			@Override
+			public void focusLost(FocusEvent e) {
+				if(new File(txtSourceFolder.getText()).exists()){
+					directoryManager.setSourceFolder(new File(txtSourceFolder.getText()));
+					directoryManager.setHasSourceFolder(true);
+				}
+				playButtonsCheck();
+				
+			}
+		});
+		
+		directoryManager.addListener(new DirectoryManagerListener() {
+			
+			@Override
+			public void sourceFolderChanged() {
+				if(timerManager.isRunning()){
+					timerManager.resetTimer();
+				}
+			}
+			
+			@Override
+			public void fileCopied() {
+				Display.getDefault().syncExec(new Runnable() {
+					@Override
+					public void run() {
+						directoryManager.incrementCurrentIndex();
+						Integer count = directoryManager.getCurrentIndex();
+						lblSentCount.setText(count.toString());
+						count = directoryManager.getTotalFileCount() - directoryManager.getCurrentIndex();
+						lblToGoCount.setText(count.toString());
+						
+					}
+				});
+			}
+
+			@Override
+			public void noMoreFilesEvent() {
+				timerManager.resetTimer();
+				
+			}
+		});
+		
+		txtSourceFolder.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				String currentText = txtSourceFolder.getText();
+				if(!(new File(currentText).exists())){
+					txtSourceFolder.setForeground(mainDisplay.getSystemColor(SWT.COLOR_RED));
+					directoryManager.setSourceFolder(new File(""));
+					directoryManager.setHasSourceFolder(false);
+					lblTotalCount.setText("0");
+					lblToGoCount.setText("0");
+				}else{
+					txtSourceFolder.setForeground(mainDisplay.getSystemColor(SWT.COLOR_BLACK));
+					directoryManager.setSourceFolder(new File(currentText));
+					directoryManager.setHasSourceFolder(true);
+					lblTotalCount.setText(new Integer(directoryManager.getTotalFileCount()).toString());
+					lblToGoCount.setText(new Integer(directoryManager.getTotalFileCount()).toString());
+				}
+				playButtonsCheck();
+			}
+		});
+		
+		txtMonitoredFolder.addFocusListener(new FocusAdapter() {
+			@Override
+			public void focusLost(FocusEvent e) {
+				if(new File(txtMonitoredFolder.getText()).exists()){
+					directoryManager.setDestinationFolder(new File(txtMonitoredFolder.getText()));
+					directoryManager.setHasDestinationFolder(true);
+				}
+				playButtonsCheck();
+			}
+		});
+		txtMonitoredFolder.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				String currentText = txtMonitoredFolder.getText();
+				if(!(new File(currentText).exists())){
+					txtMonitoredFolder.setForeground(mainDisplay.getSystemColor(SWT.COLOR_RED));
+					directoryManager.setDestinationFolder(new File(""));
+					directoryManager.setHasDestinationFolder(false);
+				}else{
+					txtMonitoredFolder.setForeground(mainDisplay.getSystemColor(SWT.COLOR_BLACK));
+					directoryManager.setDestinationFolder(new File(currentText));
+					directoryManager.setHasDestinationFolder(true);
+				}
+				playButtonsCheck();
+			}
+		});
+		
+		sourceBrowseButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				DirectoryDialog DD = new DirectoryDialog((Shell) mainScripterShell);
+				DD.setFilterPath("c:\\");
+				String resultFolder = DD.open();
+				txtSourceFolder.setText(resultFolder);
+				
+				if(directoryManager.setSourceFolder(new File(resultFolder))){
+					Integer count = directoryManager.getTotalFileCount();
+					lblTotalCount.setText(count.toString());
+					lblToGoCount.setText(count.toString());
+					directoryManager.setHasSourceFolder(true);
+				}
+				
+				playButtonsCheck();
+			}
+		});
+		
+		monitoredBrowseButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				DirectoryDialog DD = new DirectoryDialog((Shell)mainScripterShell);
+				DD.setFilterPath("c:\\");
+				String resultFolder = DD.open();
+				txtMonitoredFolder.setText(resultFolder);
+				directoryManager.setDestinationFolder(new File(resultFolder));
+				directoryManager.setHasDestinationFolder(true);
+				playButtonsCheck();
+			}
+		});
+		
+		// TMC
+		timeRadioButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				timerManager.setEventSendPreference(EventSendPreference.TIMER);
+				
+				//TODO
+//				public void reset(){
+//					if(isRunning.get()){
+//						setResetFlag(true);
+//						while(!executor.isShutdown());
+//							
+//						while(!executor.isTerminated());
+//							
+//						executor = Executors.newSingleThreadExecutor();
+//						setRunningStatus(false);
+//						resetControlFlags();
+//					}
+//					return;
+//				}
+				
+				if(timeRadioButton.getSelection()){
+					intervalSpinner_1.setEnabled(true);
+					unitCombo_1.setEnabled(true);
+					innerTimerComposite.setVisible(true);
+					if(betweenSelectionRadio.getSelection()){
+						intervalSpinner_2.setEnabled(true);
+						unitCombo_2.setEnabled(true);
+					}
+					
+					pauseButton.setVisible(true);
+				}
+			}
+		});
+		
+		manualRadioButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				timerManager.setEventSendPreference(EventSendPreference.MANUAL);
+				
+				//TODO reset();
+				
+				if(manualRadioButton.getSelection()){
+					
+					intervalSpinner_1.setEnabled(false);
+					intervalSpinner_2.setEnabled(false);
+					unitCombo_1.setEnabled(false);
+					unitCombo_2.setEnabled(false);
+					innerTimerComposite.setVisible(false);
+					
+					pauseButton.setVisible(false);
+					timerManager.pauseTimer();
+				}
+			}
+		});
+		intervalSpinner_1.addListener(SWT.Verify, new Listener() {
+			
+			@Override
+			public void handleEvent(Event arg0) {
+				if(arg0.keyCode == 0)
+	            {
+					timerManager.setLowerUnit(intervalSpinner_1.getSelection());
+					if(timerManager.getLowerUnit() > timerManager.getUpperUnit()){
+						intervalSpinner_2.setSelection(intervalSpinner_1.getSelection());
+						timerManager.setUpperUnit(intervalSpinner_1.getSelection());
+					}
+	            }
+			}
+		});
+		
+		intervalSpinner_1.addFocusListener(new FocusAdapter() {
+			@Override
+			public void focusLost(FocusEvent e) {
+				timerManager.setLowerUnit(intervalSpinner_1.getSelection());
+				if(timerManager.getLowerUnit() > timerManager.getUpperUnit()){
+					intervalSpinner_2.setSelection(intervalSpinner_1.getSelection());
+					timerManager.setUpperUnit(intervalSpinner_1.getSelection());
+				}
+			}
+		});
+		
+		intervalSpinner_2.addListener(SWT.Verify, new Listener() {
+			
+			@Override
+			public void handleEvent(Event arg0) {
+				if(arg0.keyCode == 0){
+					timerManager.setUpperUnit(intervalSpinner_2.getSelection());
+					if(timerManager.getLowerUnit() > timerManager.getUpperUnit()){
+						intervalSpinner_1.setSelection(intervalSpinner_2.getSelection());
+						timerManager.setLowerUnit(intervalSpinner_2.getSelection());
+					}
+				}
+			}
+		});
+		
+		intervalSpinner_2.addFocusListener(new FocusAdapter() {
+			@Override
+			public void focusLost(FocusEvent e) {
+				timerManager.setUpperUnit(intervalSpinner_2.getSelection());
+			}
+		});
+		
+		unitCombo_1.addFocusListener(new FocusAdapter() {
+			@Override
+			public void focusLost(FocusEvent e) {
+				if(unitCombo_1.getText().equalsIgnoreCase("seconds")){
+					timerManager.setLowerUnitType(IntervalUnitType.SECONDS);
+				}else{
+					timerManager.setLowerUnitType(IntervalUnitType.MINUTES);
+				}
+					
+			}
+		});
+		
+		unitCombo_2.addFocusListener(new FocusAdapter() {
+			@Override
+			public void focusLost(FocusEvent e) {
+				if(unitCombo_2.getText().equalsIgnoreCase("seconds")){
+					timerManager.setLowerUnitType(IntervalUnitType.SECONDS);
+				}else{
+					timerManager.setLowerUnitType(IntervalUnitType.MINUTES);
+				}
+			}
+		});
+		
+		betweenSelectionRadio.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				intervalSpinner_2.setEnabled(true);
+				unitCombo_2.setEnabled(true);
+				timerManager.setIntervalType(IntervalType.BETWEEN);
+			}
+		});
+		
+		everySelectionRadio.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				intervalSpinner_2.setEnabled(false);
+				unitCombo_2.setEnabled(false);
+				timerManager.setIntervalType(IntervalType.EVERY);
+			}
+		});
+		
+		
+		playButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				resetButton.setEnabled(true);
+				
+				if(timerManager.getEventSendPreference() == EventSendPreference.TIMER){
+					disableTimerConfiguration();
+					if(timerManager.isRunning()){
+						timerManager.startTimer();
+						playButton.setEnabled(false);
+						pauseButton.setEnabled(true);
+					}else{
+						playButton.setEnabled(false);
+						pauseButton.setEnabled(true);
+						
+						timerManager.startTimer();
+					}
+				}else{
+					directoryManager.copyFile();
+					timerManager.startTimer();
+				}
+			}
+		});
+		
+		pauseButton.addSelectionListener(new SelectionAdapter() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				enableTimerConfiguration();
+				timerManager.pauseTimer();
+				
+				pauseButton.setEnabled(false);
+				playButton.setEnabled(true);
+			}
+			
+		});
+		
+		resetButton.addSelectionListener(new SelectionAdapter() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				timerManager.resetTimer();
+				playButton.setEnabled(true);
+				resetButton.setEnabled(false);
+				pauseButton.setEnabled(false);
+			}
+		});
+		timerManager.addListener(new TimerListener() {
+			
+			@Override
+			public void timerChanged() {
+				//TODO whatever "model copy next ...."
+			}
+
+			@Override
+			public void sendEvent() {
+				directoryManager.copyFile();
+				System.out.println("Event sent");
+				
+			}
+		});
+		
+	}
+	
+	public void enableTimerConfiguration() {
+		innerTimerComposite.setVisible(false);
+		timeRadioButton.setEnabled(false);
+		manualRadioButton.setEnabled(false);
+	}
+	public void disableTimerConfiguration() {
+		innerTimerComposite.setVisible(true);
+		timeRadioButton.setEnabled(true);
+		manualRadioButton.setEnabled(true);
+	}
+	public void playButtonsCheck(){
+		if(directoryManager.foldersConfigured()){
+			playButton.setEnabled(true);
+			pauseButton.setEnabled(false);
+			resetButton.setEnabled(false);
+		}else{
+			playButton.setEnabled(false);
+			pauseButton.setEnabled(false);
+			resetButton.setEnabled(false);
+		}
+	}
+	@Override
+	protected void checkSubclass() {
+		// Disable the check that prevents subclassing of SWT components
+	}
+
+}
