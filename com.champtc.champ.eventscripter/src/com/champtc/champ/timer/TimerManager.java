@@ -1,9 +1,5 @@
 package com.champtc.champ.timer;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
@@ -12,8 +8,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.champtc.champ.eventscripter.ScriptController;
-import com.sun.prism.shape.ShapeRep.InvalidationType;
 
 public class TimerManager {
 	private Set<TimerListener> listeners = new HashSet<TimerListener>();
@@ -62,19 +56,47 @@ public class TimerManager {
 		public void run(){
 			
 			timer.runningStatus.set(true);
+			
 			while(timer.isRunning()){
 				int randomTimeValue = 0;
-				int range = timer.getUpperUnit() - timer.getLowerUnit();
-				if(range > 0)
-					randomTimeValue = (new Random().nextInt(timer.getUpperUnit() - timer.getLowerUnit()) + 0);
 				
-				int timerValue = randomTimeValue + timer.getLowerUnit();
+				int lower = timer.getLowerUnit();
+				if(timer.getLowerUnitType().equals(IntervalUnitType.MINUTES))
+					lower *= 60;
+				
+				int upper = timer.getUpperUnit();
+				if(timer.getUpperUnitType().equals(IntervalUnitType.MINUTES))
+					upper *= 60;
+				
+				int range = upper - lower;
+				if(timer.intervalType.equals(IntervalType.BETWEEN)){
+					if(range > 0)
+					randomTimeValue = (new Random().nextInt(range) + 0);
+				}
+				
+				int timerValue = randomTimeValue + lower;
 				try {
-					while(timerValue >= 0){
-						Thread.sleep(1000L);
-						timerValue--;
-						while(timer.paused()){
+					while(timerValue >  0){
+						timer.fireTimeUpdate(timerValue);
+						
+						long time = 0;
+						while(time < 1000L){
+							Thread.sleep(1L);
+							time++;
+							
+							while(timer.paused()){
+								if(timer.resetFlag.get()){
+									return;
+								}
+							}
+							if(timer.resetFlag.get()){
+								timer.resetFlag.set(false);
+								timer.runningStatus.set(false);
+								return;
+							}
 						}
+						
+						timerValue--;
 					}
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
@@ -82,12 +104,16 @@ public class TimerManager {
 				}
 				timer.fireSendEvent();
 			}
+			timer.runningStatus.set(false);
 			return;
 		}
 	};
 	
 	public void startTimer(){
-		stopFlag.set(false);
+		if(isRunning()){
+			stopFlag.set(false);
+			return;
+		}
 		
 		if(eventSendPreference.equals(EventSendPreference.TIMER)){
 			if(intervalType.equals(IntervalType.BETWEEN)){
@@ -133,17 +159,18 @@ public class TimerManager {
 	}
 	
 	public void resetTimer(){
-		fireTimerChangedEvent();
+		
+		resetFlag.set(true);
+		runningStatus.set(false);
 		stopFlag.set(false);
-		executor.shutdownNow();
+		fireTimerChangedEvent();
+		resetFlag.set(false);
+		
+		// sends for file statistics reset
 	}
 	
 	public void pauseTimer(){
-		if(stopFlag.get()){
-			stopFlag.set(false);
-		}else{
-			stopFlag.set(true);
-		}
+		stopFlag.set(true);
 	}
 	
 	public boolean paused(){
@@ -211,7 +238,6 @@ public class TimerManager {
 	 * @param lowerUnit the lowerUnit to set
 	 */
 	public boolean setLowerUnit(int lowerUnit) {
-		//check for > 0 
 		this.lowerUnit = lowerUnit;
 		return true;
 	}
@@ -227,7 +253,6 @@ public class TimerManager {
 	 * @param upperUnit the upperUnit to set
 	 */
 	public boolean setUpperUnit(int upperUnit) {
-		//check return if > 0
 		this.upperUnit = upperUnit;
 		return true;
 	}
@@ -263,6 +288,12 @@ public class TimerManager {
 	private void fireSendEvent(){
 		for(TimerListener l : listeners){
 			l.sendEvent();
+		}
+	}
+	
+	private void fireTimeUpdate(int time){
+		for(TimerListener l : listeners){
+			l.timeUpdate(time);
 		}
 	}
 }

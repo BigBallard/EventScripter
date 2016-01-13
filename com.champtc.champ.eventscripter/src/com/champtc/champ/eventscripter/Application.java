@@ -15,20 +15,7 @@ public class Application implements IApplication {
 	 * @see org.eclipse.equinox.app.IApplication#start(org.eclipse.equinox.app.IApplicationContext)
 	 */
 	public Object start(IApplicationContext context) throws Exception {
-		
-//		ScripterUI SUI = new ScripterUI();
-		
-//		ScriptController controller = new ScriptController();
-//		controller.setSourceFolder(); 
-//		controller.setDestinationFolder();
-//		controller.setTimerPreferences();
-//		System.out.println("Press ENTER to run...");
-//		
-//		String choice = new Scanner(System.in).nextLine();
-//		
-//		if(choice.equals("\n")){
-//			controller.run();
-//		}
+		new com.champtc.champ.ui.EventScripter();
 		   return IApplication.EXIT_OK;
   }
 

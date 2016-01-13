@@ -11,7 +11,7 @@ public class EventScripter {
 	public EventScripter() {
 		Display mainDisplay = new Display();
 		Shell mainScripterShell = new Shell(mainDisplay,NON_RESIZABLE);
-		mainScripterShell.setSize(535,450);
+		mainScripterShell.setSize(535,293);
 		mainScripterShell.setText("Event Scripter");
 		
 		mainScripterShell.setBackground(mainDisplay.getSystemColor(SWT.COLOR_WHITE));

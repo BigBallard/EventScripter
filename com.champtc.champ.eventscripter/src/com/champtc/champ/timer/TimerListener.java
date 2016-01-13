@@ -6,5 +6,7 @@ public interface TimerListener {
 		
 		public void sendEvent();
 		
+		public void timeUpdate(int time);
+		
 		
 }

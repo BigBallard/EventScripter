@@ -1,33 +1,27 @@
 package com.champtc.champ.ui;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.concurrent.Executors;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.FocusAdapter;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.wb.swt.SWTResourceManager;
 
-import com.champtc.champ.eventscripter.ui.FileStatisticsComposite;
 import com.champtc.champ.model.DirectoryManager;
 import com.champtc.champ.model.DirectoryManagerListener;
 import com.champtc.champ.timer.TimerListener;
@@ -60,6 +54,7 @@ public class EventScripterComposite extends Composite {
 	private Label lblToGoCount;
 	private Label lblSentCount;
 	private Label lblTotalCount;
+	private Label lblTimeLeft;
 
 	/**
 	 * Create the composite.
@@ -218,14 +213,11 @@ public class EventScripterComposite extends Composite {
 				lblTimeToNext.setBounds(165, 10, 106, 15);
 				lblTimeToNext.setText("Time to next file");
 				
-				Label lblTimeLeft = new Label(fileStatisticsComposite, SWT.NONE);
+				lblTimeLeft = new Label(fileStatisticsComposite, SWT.NONE);
 				lblTimeLeft.setAlignment(SWT.RIGHT);
-				lblTimeLeft.setBounds(165, 31, 40, 15);
-				lblTimeLeft.setText("0 :");
+				lblTimeLeft.setBounds(190, 31, 40, 15);
+				lblTimeLeft.setText("0:00");
 				
-				Label lblTimeLeftUnits = new Label(fileStatisticsComposite, SWT.NONE);
-				lblTimeLeftUnits.setBounds(216, 31, 55, 15);
-				lblTimeLeftUnits.setText("Seconds");
 				
 				
 				// PLAYER COMPOSITE
@@ -238,17 +230,17 @@ public class EventScripterComposite extends Composite {
 				
 				playButton = new Button(playerComposite, SWT.NONE);
 				playButton.setEnabled(false);
-				playButton.setImage(SWTResourceManager.getImage(FileStatisticsComposite.class, "/icons/play-arrow.png"));
+				playButton.setImage(SWTResourceManager.getImage(EventScripterComposite.class, "/icons/play-arrow.png"));
 				playButton.setBounds(72, 0, 30, 30);
 				
 				pauseButton = new Button(playerComposite, SWT.NONE);
 				pauseButton.setEnabled(false);
-				pauseButton.setImage(SWTResourceManager.getImage(FileStatisticsComposite.class, "/icons/pause.png"));
+				pauseButton.setImage(SWTResourceManager.getImage(EventScripterComposite.class, "/icons/pause.png"));
 				pauseButton.setBounds(36, 0, 30, 30);
 				
 				resetButton = new Button(playerComposite, SWT.NONE);
 				resetButton.setEnabled(false);
-				resetButton.setImage(SWTResourceManager.getImage(FileStatisticsComposite.class, "/icons/back.png"));
+				resetButton.setImage(SWTResourceManager.getImage(EventScripterComposite.class, "/icons/back.png"));
 				resetButton.setBounds(0, 0, 30, 30);
 				
 
@@ -268,37 +260,6 @@ public class EventScripterComposite extends Composite {
 					directoryManager.setHasSourceFolder(true);
 				}
 				playButtonsCheck();
-				
-			}
-		});
-		
-		directoryManager.addListener(new DirectoryManagerListener() {
-			
-			@Override
-			public void sourceFolderChanged() {
-				if(timerManager.isRunning()){
-					timerManager.resetTimer();
-				}
-			}
-			
-			@Override
-			public void fileCopied() {
-				Display.getDefault().syncExec(new Runnable() {
-					@Override
-					public void run() {
-						directoryManager.incrementCurrentIndex();
-						Integer count = directoryManager.getCurrentIndex();
-						lblSentCount.setText(count.toString());
-						count = directoryManager.getTotalFileCount() - directoryManager.getCurrentIndex();
-						lblToGoCount.setText(count.toString());
-						
-					}
-				});
-			}
-
-			@Override
-			public void noMoreFilesEvent() {
-				timerManager.resetTimer();
 				
 			}
 		});
@@ -357,14 +318,17 @@ public class EventScripterComposite extends Composite {
 				DirectoryDialog DD = new DirectoryDialog((Shell) mainScripterShell);
 				DD.setFilterPath("c:\\");
 				String resultFolder = DD.open();
-				txtSourceFolder.setText(resultFolder);
-				
-				if(directoryManager.setSourceFolder(new File(resultFolder))){
-					Integer count = directoryManager.getTotalFileCount();
-					lblTotalCount.setText(count.toString());
-					lblToGoCount.setText(count.toString());
-					directoryManager.setHasSourceFolder(true);
+				if(resultFolder != null){
+					txtSourceFolder.setText(resultFolder);
+					
+					if(directoryManager.setSourceFolder(new File(resultFolder))){
+						Integer count = directoryManager.getTotalFileCount();
+						lblTotalCount.setText(count.toString());
+						lblToGoCount.setText(count.toString());
+						directoryManager.setHasSourceFolder(true);
+					}
 				}
+				
 				
 				playButtonsCheck();
 			}
@@ -376,9 +340,13 @@ public class EventScripterComposite extends Composite {
 				DirectoryDialog DD = new DirectoryDialog((Shell)mainScripterShell);
 				DD.setFilterPath("c:\\");
 				String resultFolder = DD.open();
-				txtMonitoredFolder.setText(resultFolder);
-				directoryManager.setDestinationFolder(new File(resultFolder));
-				directoryManager.setHasDestinationFolder(true);
+				
+				if(resultFolder != null){
+					txtMonitoredFolder.setText(resultFolder);
+					directoryManager.setDestinationFolder(new File(resultFolder));
+					directoryManager.setHasDestinationFolder(true);
+				}
+				
 				playButtonsCheck();
 			}
 		});
@@ -387,22 +355,11 @@ public class EventScripterComposite extends Composite {
 		timeRadioButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				if(timerManager.getEventSendPreference().equals(EventSendPreference.MANUAL)){
+					timerManager.resetTimer();
+				}
 				timerManager.setEventSendPreference(EventSendPreference.TIMER);
-				
-				//TODO
-//				public void reset(){
-//					if(isRunning.get()){
-//						setResetFlag(true);
-//						while(!executor.isShutdown());
-//							
-//						while(!executor.isTerminated());
-//							
-//						executor = Executors.newSingleThreadExecutor();
-//						setRunningStatus(false);
-//						resetControlFlags();
-//					}
-//					return;
-//				}
+				lblTimeLeft.setVisible(true);
 				
 				if(timeRadioButton.getSelection()){
 					intervalSpinner_1.setEnabled(true);
@@ -422,8 +379,10 @@ public class EventScripterComposite extends Composite {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				timerManager.setEventSendPreference(EventSendPreference.MANUAL);
-				
-				//TODO reset();
+				lblTimeLeft.setVisible(false);
+				if(timerManager.isRunning()){
+					timerManager.resetTimer();
+				}
 				
 				if(manualRadioButton.getSelection()){
 					
@@ -438,73 +397,97 @@ public class EventScripterComposite extends Composite {
 				}
 			}
 		});
-		intervalSpinner_1.addListener(SWT.Verify, new Listener() {
+		
+		intervalSpinner_1.addSelectionListener(new SelectionListener() {
 			
 			@Override
-			public void handleEvent(Event arg0) {
-				if(arg0.keyCode == 0)
-	            {
-					timerManager.setLowerUnit(intervalSpinner_1.getSelection());
-					if(timerManager.getLowerUnit() > timerManager.getUpperUnit()){
-						intervalSpinner_2.setSelection(intervalSpinner_1.getSelection());
-						timerManager.setUpperUnit(intervalSpinner_1.getSelection());
-					}
-	            }
-			}
-		});
-		
-		intervalSpinner_1.addFocusListener(new FocusAdapter() {
-			@Override
-			public void focusLost(FocusEvent e) {
+			public void widgetSelected(SelectionEvent e) {
 				timerManager.setLowerUnit(intervalSpinner_1.getSelection());
-				if(timerManager.getLowerUnit() > timerManager.getUpperUnit()){
+				if(intervalSpinner_1.getSelection() > intervalSpinner_2.getSelection() && (timerManager.getLowerUnitType().equals(timerManager.getUpperUnitType()))){
 					intervalSpinner_2.setSelection(intervalSpinner_1.getSelection());
 					timerManager.setUpperUnit(intervalSpinner_1.getSelection());
 				}
 			}
-		});
-		
-		intervalSpinner_2.addListener(SWT.Verify, new Listener() {
 			
 			@Override
-			public void handleEvent(Event arg0) {
-				if(arg0.keyCode == 0){
-					timerManager.setUpperUnit(intervalSpinner_2.getSelection());
-					if(timerManager.getLowerUnit() > timerManager.getUpperUnit()){
-						intervalSpinner_1.setSelection(intervalSpinner_2.getSelection());
-						timerManager.setLowerUnit(intervalSpinner_2.getSelection());
-					}
+			public void widgetDefaultSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+		
+		
+		intervalSpinner_2.addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				timerManager.setUpperUnit(intervalSpinner_2.getSelection());
+				if(intervalSpinner_1.getSelection() > intervalSpinner_2.getSelection() && (timerManager.getLowerUnitType().equals(timerManager.getUpperUnitType()))){
+					intervalSpinner_1.setSelection(intervalSpinner_2.getSelection());
+					timerManager.setLowerUnit(intervalSpinner_2.getSelection());
 				}
 			}
-		});
-		
-		intervalSpinner_2.addFocusListener(new FocusAdapter() {
+			
 			@Override
-			public void focusLost(FocusEvent e) {
-				timerManager.setUpperUnit(intervalSpinner_2.getSelection());
+			public void widgetDefaultSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+				
 			}
 		});
 		
-		unitCombo_1.addFocusListener(new FocusAdapter() {
+		unitCombo_1.addSelectionListener(new SelectionListener() {
+			
 			@Override
-			public void focusLost(FocusEvent e) {
+			public void widgetSelected(SelectionEvent e) {
 				if(unitCombo_1.getText().equalsIgnoreCase("seconds")){
 					timerManager.setLowerUnitType(IntervalUnitType.SECONDS);
 				}else{
 					timerManager.setLowerUnitType(IntervalUnitType.MINUTES);
 				}
-					
+				
+				if(unitCombo_1.getText().equalsIgnoreCase("Minutes")){
+					unitCombo_2.setText("Minutes");
+					timerManager.setUpperUnitType(IntervalUnitType.MINUTES);
+					if(intervalSpinner_1.getSelection() > intervalSpinner_2.getSelection()){
+						intervalSpinner_2.setSelection(intervalSpinner_1.getSelection());
+						timerManager.setUpperUnit(intervalSpinner_1.getSelection());
+					}
+				}
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+				
 			}
 		});
 		
-		unitCombo_2.addFocusListener(new FocusAdapter() {
+		unitCombo_2.addSelectionListener(new SelectionListener() {
+			
 			@Override
-			public void focusLost(FocusEvent e) {
+			public void widgetSelected(SelectionEvent e) {
 				if(unitCombo_2.getText().equalsIgnoreCase("seconds")){
-					timerManager.setLowerUnitType(IntervalUnitType.SECONDS);
+					timerManager.setUpperUnitType(IntervalUnitType.SECONDS);
 				}else{
-					timerManager.setLowerUnitType(IntervalUnitType.MINUTES);
+					timerManager.setUpperUnitType(IntervalUnitType.MINUTES);
 				}
+				
+				if(unitCombo_1.getText().equalsIgnoreCase("minutes") && unitCombo_2.getText().equalsIgnoreCase("seconds")){
+					unitCombo_1.setText("Seconds");
+					timerManager.setLowerUnitType(IntervalUnitType.SECONDS);
+					if(intervalSpinner_1.getSelection() > intervalSpinner_2.getSelection()){
+						intervalSpinner_1.setSelection(intervalSpinner_2.getSelection());
+						timerManager.setLowerUnit(intervalSpinner_2.getSelection());
+					}
+				}
+					
+
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+				
 			}
 		});
 		
@@ -545,8 +528,8 @@ public class EventScripterComposite extends Composite {
 						timerManager.startTimer();
 					}
 				}else{
+					
 					directoryManager.copyFile();
-					timerManager.startTimer();
 				}
 			}
 		});
@@ -572,13 +555,24 @@ public class EventScripterComposite extends Composite {
 				playButton.setEnabled(true);
 				resetButton.setEnabled(false);
 				pauseButton.setEnabled(false);
+				enableTimerConfiguration();
+				lblTimeLeft.setText("0:00");
+				lblSentCount.setText("0");
+				lblToGoCount.setText(lblTotalCount.getText());
 			}
 		});
 		timerManager.addListener(new TimerListener() {
 			
 			@Override
 			public void timerChanged() {
-				//TODO whatever "model copy next ...."
+				Display.getDefault().syncExec(new Runnable() {
+					@Override
+					public void run() {
+						lblTimeLeft.setText("0:00");
+						lblSentCount.setText("0");
+						lblToGoCount.setText(lblTotalCount.getText());
+					}
+				});
 			}
 
 			@Override
@@ -587,19 +581,73 @@ public class EventScripterComposite extends Composite {
 				System.out.println("Event sent");
 				
 			}
+
+			@Override
+			public void timeUpdate(int time) {
+				Integer seconds = new Integer(time % 60);
+				Integer minutes = new Integer(time / 60);
+
+				Display.getDefault().syncExec(new Runnable() {
+					@Override
+					public void run() {
+						if(seconds < 10){
+							lblTimeLeft.setText(minutes.toString() + ":0" + seconds.toString());
+						}else{
+							lblTimeLeft.setText(minutes.toString() + ":" + seconds.toString());
+						}
+					}
+				});
+			}
+		});
+		
+		directoryManager.addListener(new DirectoryManagerListener() {
+			
+			@Override
+			public void sourceFolderChanged() {
+				if(timerManager.isRunning()){
+					timerManager.resetTimer();
+				}
+			}
+			
+			@Override
+			public void fileCopied() {
+				Display.getDefault().syncExec(new Runnable() {
+					@Override
+					public void run() {	
+						directoryManager.incrementCurrentIndex();
+						Integer count = directoryManager.getCurrentIndex();
+						lblSentCount.setText(count.toString());
+						count = directoryManager.getTotalFileCount() - directoryManager.getCurrentIndex();
+						lblToGoCount.setText(count.toString());
+					}
+				});
+			}
+
+			@Override
+			public void noMoreFilesEvent() {
+				Display.getDefault().syncExec(new Runnable() {
+					@Override
+					public void run() {
+						timerManager.resetTimer();
+						if(timerManager.getEventSendPreference().equals(EventSendPreference.TIMER))
+							enableTimerConfiguration();
+						playButtonsCheck();
+					}
+				});
+			}
 		});
 		
 	}
 	
 	public void enableTimerConfiguration() {
-		innerTimerComposite.setVisible(false);
-		timeRadioButton.setEnabled(false);
-		manualRadioButton.setEnabled(false);
-	}
-	public void disableTimerConfiguration() {
 		innerTimerComposite.setVisible(true);
 		timeRadioButton.setEnabled(true);
 		manualRadioButton.setEnabled(true);
+	}
+	public void disableTimerConfiguration() {
+		innerTimerComposite.setVisible(false);
+		timeRadioButton.setEnabled(false);
+		manualRadioButton.setEnabled(false);
 	}
 	public void playButtonsCheck(){
 		if(directoryManager.foldersConfigured()){

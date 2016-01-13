@@ -15,10 +15,15 @@ public class DirectoryManager {
 private Set<DirectoryManagerListener> listeners = new HashSet<DirectoryManagerListener>();
 	
 	private File sourceFolder;
+	
 	private File destinationFolder;
+	
 	private File[] fileList;
+	
 	private AtomicInteger currentIndex = new AtomicInteger(0);
+	
 	private boolean hasSourceFolder = false;
+	
 	private boolean hasDestinationFolder = false;
 	
 	
@@ -33,8 +38,9 @@ private Set<DirectoryManagerListener> listeners = new HashSet<DirectoryManagerLi
 		
 		fireFileCopiedEvent();
 		
-		if(currentIndex.get() == getTotalFileCount()-1){
+		if(currentIndex.get() == getTotalFileCount()){
 			fireNoMoreFilesEvent();
+			currentIndex.set(0);
 		}
 		// Check that I have a valid source folder and destination folder
 		// check that file list is valid

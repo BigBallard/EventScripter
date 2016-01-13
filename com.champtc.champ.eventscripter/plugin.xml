@@ -11,5 +11,17 @@
          </run>
       </application>
    </extension>
+   <extension
+         id="product"
+         point="org.eclipse.core.runtime.products">
+      <product
+            application="com.champtc.champ.eventscripter.application"
+            name="Event Scripter">
+         <property
+               name="appName"
+               value="Event Scripter">
+         </property>
+      </product>
+   </extension>
 
 </plugin>
