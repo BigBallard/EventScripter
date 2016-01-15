@@ -3,6 +3,7 @@ package com.champtc.champ.ui;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.wb.swt.SWTResourceManager;
 
 public class EventScripter {
 	
@@ -13,6 +14,7 @@ public class EventScripter {
 		Shell mainScripterShell = new Shell(mainDisplay,NON_RESIZABLE);
 		mainScripterShell.setSize(535,293);
 		mainScripterShell.setText("Event Scripter");
+		mainScripterShell.setImage(SWTResourceManager.getImage(EventScripterComposite.class, "/icons/EventScripter-64.png"));
 		
 		mainScripterShell.setBackground(mainDisplay.getSystemColor(SWT.COLOR_WHITE));
 		

@@ -18,10 +18,10 @@
 
    <windowImages/>
 
-
-   <launcher name="Event Scripter">
+   <launcher name="EventScripter">
       <solaris/>
       <win useIco="true">
+         <ico path="/com.champtc.champ.eventscripter/src/icons/favicon.ico"/>
          <bmp/>
       </win>
    </launcher>
@@ -30,6 +30,7 @@
    <vm>
       <windows include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8</windows>
    </vm>
+
 
    <plugins>
       <plugin id="com.champtc.champ.eventscripter"/>
