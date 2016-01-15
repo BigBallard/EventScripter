@@ -51,7 +51,12 @@ private Set<DirectoryManagerListener> listeners = new HashSet<DirectoryManagerLi
 	}
 	
 	
-	
+	/**
+	 * 
+	 */
+	public void resetIndex(){
+		currentIndex.set(0);
+	}
 	
 	/**
 	 * @return the sourceFolder

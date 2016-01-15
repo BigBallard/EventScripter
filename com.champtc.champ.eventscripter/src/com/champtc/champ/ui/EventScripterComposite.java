@@ -552,6 +552,7 @@ public class EventScripterComposite extends Composite {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				timerManager.resetTimer();
+				directoryManager.resetIndex();
 				playButton.setEnabled(true);
 				resetButton.setEnabled(false);
 				pauseButton.setEnabled(false);
