@@ -3,7 +3,6 @@
 
 <product name="Event Scripter" uid="com.champtc.champ.eventscripter" id="com.champtc.champ.eventscripter.product" application="com.champtc.champ.eventscripter.application" version="1.0.0" useFeatures="false" includeLaunchers="true">
 
-
    <configIni use="default">
    </configIni>
 
@@ -21,16 +20,14 @@
    <launcher name="EventScripter">
       <solaris/>
       <win useIco="true">
-         <ico path="/com.champtc.champ.eventscripter/src/icons/favicon.ico"/>
+         <ico path="/com.champtc.champ.eventscripter/src/icons/exeIconSet.ico"/>
          <bmp/>
       </win>
    </launcher>
 
-
    <vm>
       <windows include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8</windows>
    </vm>
-
 
    <plugins>
       <plugin id="com.champtc.champ.eventscripter"/>

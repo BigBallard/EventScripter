@@ -153,7 +153,6 @@ public class TimerManager {
 			runningStatus.set(true);
 		}
 		
-		// start a job (delay, check stop flag, fire events)
 		
 		return;
 	}
@@ -166,7 +165,6 @@ public class TimerManager {
 		fireTimerChangedEvent();
 		resetFlag.set(false);
 		
-		// sends for file statistics reset
 	}
 	
 	public void pauseTimer(){

@@ -539,15 +539,19 @@ public class EventScripterComposite extends Composite {
 				if(timerManager.getEventSendPreference() == EventSendPreference.TIMER){
 					disableTimerConfiguration();
 					if(timerManager.isRunning()){
-						timerManager.startTimer();
 						playButton.setEnabled(false);
 						pauseButton.setEnabled(true);
+						
+						timerManager.startTimer();
+						System.out.println("Timer resumed.");
 					}else{
 						playButton.setEnabled(false);
 						pauseButton.setEnabled(true);
 						
 						timerManager.startTimer();
+						System.out.println("Timer started.");
 					}
+					
 				}else{
 					
 					directoryManager.copyFile();
@@ -564,6 +568,8 @@ public class EventScripterComposite extends Composite {
 				
 				pauseButton.setEnabled(false);
 				playButton.setEnabled(true);
+				
+				System.out.println("Timer paused.");
 			}
 			
 		});
@@ -581,6 +587,8 @@ public class EventScripterComposite extends Composite {
 				lblTimeLeft.setText("0:00");
 				lblSentCount.setText("0");
 				lblToGoCount.setText(lblTotalCount.getText());
+				
+				System.out.println("Timer reset.");
 			}
 		});
 		timerManager.addListener(new TimerListener() {
@@ -600,8 +608,6 @@ public class EventScripterComposite extends Composite {
 			@Override
 			public void sendEvent() {
 				directoryManager.copyFile();
-				System.out.println("Event sent");
-				
 			}
 
 			@Override
@@ -654,6 +660,8 @@ public class EventScripterComposite extends Composite {
 						if(timerManager.getEventSendPreference().equals(EventSendPreference.TIMER))
 							enableTimerConfiguration();
 						playButtonsCheck();
+						
+						System.out.println("All files copied!");
 					}
 				});
 			}
