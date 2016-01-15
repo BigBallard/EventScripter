@@ -16,7 +16,10 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.Text;
@@ -250,6 +253,17 @@ public class EventScripterComposite extends Composite {
 	
 	private void initListeners(Composite mainScripterShell, Display mainDisplay) {
 		
+		mainScripterShell.addListener(SWT.Close, new Listener() {
+			public void handleEvent(Event event) {
+				if(timerManager.isRunning() && !timerManager.paused()){
+					MessageBox closeMessage = new MessageBox((Shell) mainScripterShell, SWT.APPLICATION_MODAL | SWT.YES | SWT.NO);
+					closeMessage.setText("Timer still running");
+					closeMessage.setMessage("The scripter is still running, close any way?");
+					
+					event.doit = closeMessage.open() == SWT.YES;
+				}
+			}
+		});
 		
 		// LISTENERS LISTENERS LISTENERS
 		txtSourceFolder.addFocusListener(new FocusAdapter() {

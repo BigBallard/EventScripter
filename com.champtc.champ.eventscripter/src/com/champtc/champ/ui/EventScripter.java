@@ -2,6 +2,9 @@ package com.champtc.champ.ui;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.wb.swt.SWTResourceManager;
 
@@ -19,6 +22,7 @@ public class EventScripter {
 		mainScripterShell.setBackground(mainDisplay.getSystemColor(SWT.COLOR_WHITE));
 		
 		new EventScripterComposite(mainScripterShell, SWT.NONE, mainDisplay);
+		
 		
 		mainScripterShell.open();
 		while(!mainScripterShell.isDisposed()){
