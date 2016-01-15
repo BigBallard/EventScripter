@@ -1,5 +1,7 @@
 package com.champtc.champ.ui;
 
+import java.io.IOException;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -12,7 +14,7 @@ public class EventScripter {
 	
 	private static final int NON_RESIZABLE = SWT.CLOSE | SWT.TITLE | SWT.MIN | SWT.MAX ;
 	
-	public EventScripter() {
+	public EventScripter() throws IOException {
 		Display mainDisplay = new Display();
 		Shell mainScripterShell = new Shell(mainDisplay,NON_RESIZABLE);
 		mainScripterShell.setSize(535,293);

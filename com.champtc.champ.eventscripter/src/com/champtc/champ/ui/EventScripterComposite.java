@@ -1,6 +1,10 @@
 package com.champtc.champ.ui;
 
+import java.awt.print.Book;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Properties;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.FocusAdapter;
@@ -63,189 +67,228 @@ public class EventScripterComposite extends Composite {
 	 * Create the composite.
 	 * @param parent
 	 * @param style
+	 * @throws IOException 
 	 */
-	public EventScripterComposite(Composite parent, int style, Display mainDisplay) {
+	public EventScripterComposite(Composite parent, int style, Display mainDisplay) throws IOException {
 		super(parent, style);
+		
+		
 		
 		timerManager = new TimerManager();
 		directoryManager = new DirectoryManager();
 		initUI(parent, mainDisplay); 
+		initProperties();
 		initListeners(parent, mainDisplay);
 		
 
 	}
+	
+	public void initProperties() throws IOException{
+		
+		if(new File("config.properties").exists()){
+			
+		}else{
+			File file = new File("config.properties");
+			Properties properties = new Properties();
+			
+			properties.setProperty("innerTimerComposite", "");
+			properties.setProperty("txtSourceFolder", "");
+			properties.setProperty("txtMonitoredFolder", "");
+			properties.setProperty("timerRadioButton", "");
+			properties.setProperty("manualRadioButton", "");
+			properties.setProperty("intervalSpinner_1", "");
+			properties.setProperty("intervalSpinner_2", "");
+			properties.setProperty("intervalSpinner_2-enabled", "");
+			properties.setProperty("unitCombo_1", "");
+			properties.setProperty("unitCombo_2", "");
+			properties.setProperty("unitCombo_2-enabled", "");
+			properties.setProperty("everySelectionRadio", "");
+			properties.setProperty("betweenSelectionRadio", "");
+			
+			
+			FileWriter writer = new FileWriter(file);
+			properties.store(writer, "Default properties");
+			writer.close();
+		}
+		
+		
+	}
+	
 	private void initUI(Composite mainScripterShell, Display mainDisplay){
+		
+		
 		// FILE HANDLING COMPOSITE
-				// Contains UI regarding interaction between the file system and the DirectoryManager
-				Composite fileHandlingComposite = new Composite(mainScripterShell, SWT.BORDER);
-				fileHandlingComposite.setBounds(5, 5, 520, 125);
-				
-				txtSourceFolder = new Text(fileHandlingComposite, SWT.BORDER);
-				txtSourceFolder.setFont(SWTResourceManager.getFont("Segoe UI", 10, SWT.NORMAL));
-				txtSourceFolder.setBounds(10, 30, 400, 25);
-				
-				txtMonitoredFolder = new Text(fileHandlingComposite, SWT.BORDER);
-				txtMonitoredFolder.setFont(SWTResourceManager.getFont("Segoe UI", 10, SWT.NORMAL));
-				txtMonitoredFolder.setBounds(10, 80, 400, 25);
-				
-				sourceBrowseButton = new Button(fileHandlingComposite, SWT.NONE);
-				sourceBrowseButton.setBounds(420, 30, 85, 25);
-				sourceBrowseButton.setText("Browse");
-				
-				Label sourceDirectoryLabel = new Label(fileHandlingComposite, SWT.NONE);
-				sourceDirectoryLabel.setFont(SWTResourceManager.getFont("Segoe UI", 10, SWT.NORMAL));
-				sourceDirectoryLabel.setBounds(10, 10, 200, 17);
-				sourceDirectoryLabel.setText("Numbered Source Files Directory");
-				
-				monitoredBrowseButton = new Button(fileHandlingComposite, SWT.NONE);
-				monitoredBrowseButton.setBounds(420, 80, 85, 25);
-				monitoredBrowseButton.setText("Browse");
-				fileHandlingComposite.setTabList(new Control[]{txtSourceFolder, txtMonitoredFolder, sourceBrowseButton, monitoredBrowseButton});
-				
-				Label monitoredDirectoryLabel = new Label(fileHandlingComposite, SWT.NONE);
-				monitoredDirectoryLabel.setFont(SWTResourceManager.getFont("Segoe UI", 10, SWT.NORMAL));
-				monitoredDirectoryLabel.setBounds(10, 61, 210, 17);
-				monitoredDirectoryLabel.setText("DarkLight Monitor Folder");
+		// Contains UI regarding interaction between the file system and the DirectoryManager
+		Composite fileHandlingComposite = new Composite(mainScripterShell, SWT.BORDER);
+		fileHandlingComposite.setBounds(5, 5, 520, 125);
+		
+		txtSourceFolder = new Text(fileHandlingComposite, SWT.BORDER);
+		txtSourceFolder.setFont(SWTResourceManager.getFont("Segoe UI", 10, SWT.NORMAL));
+		txtSourceFolder.setBounds(10, 30, 400, 25);
+		
+		txtMonitoredFolder = new Text(fileHandlingComposite, SWT.BORDER);
+		txtMonitoredFolder.setFont(SWTResourceManager.getFont("Segoe UI", 10, SWT.NORMAL));
+		txtMonitoredFolder.setBounds(10, 80, 400, 25);
+		
+		sourceBrowseButton = new Button(fileHandlingComposite, SWT.NONE);
+		sourceBrowseButton.setBounds(420, 30, 85, 25);
+		sourceBrowseButton.setText("Browse");
+		
+		Label sourceDirectoryLabel = new Label(fileHandlingComposite, SWT.NONE);
+		sourceDirectoryLabel.setFont(SWTResourceManager.getFont("Segoe UI", 10, SWT.NORMAL));
+		sourceDirectoryLabel.setBounds(10, 10, 200, 17);
+		sourceDirectoryLabel.setText("Numbered Source Files Directory");
+		
+		monitoredBrowseButton = new Button(fileHandlingComposite, SWT.NONE);
+		monitoredBrowseButton.setBounds(420, 80, 85, 25);
+		monitoredBrowseButton.setText("Browse");
+		
+		fileHandlingComposite.setTabList(new Control[]{txtSourceFolder, txtMonitoredFolder, sourceBrowseButton, monitoredBrowseButton});
+		
+		Label monitoredDirectoryLabel = new Label(fileHandlingComposite, SWT.NONE);
+		monitoredDirectoryLabel.setFont(SWTResourceManager.getFont("Segoe UI", 10, SWT.NORMAL));
+		monitoredDirectoryLabel.setBounds(10, 61, 210, 17);
+		monitoredDirectoryLabel.setText("DarkLight Monitor Folder");
 
-				
-				// TIMER MANIPULATION COMPOSITE
-				// Allows the user to manipulate the TimerManager settings. This is the main composite of the timer.
-				// If the user selects for timer based intervals then the inner timer will be active, otherwise if 
-				// set to manual, the inner composite will be disables and will keep the user from manipulating the 
-				// settings.
-				Composite timerManipulationComposite = new Composite(mainScripterShell, SWT.BORDER);
-				timerManipulationComposite.setBounds(5, 135, 230, 125);
-				
-				innerTimerComposite = new Composite(timerManipulationComposite, SWT.NONE);
-				innerTimerComposite.setBounds(10, 29, 195, 98);
-				
-				timeRadioButton = new Button(timerManipulationComposite, SWT.RADIO);
-				timeRadioButton.setSelection(true);
-				timeRadioButton.setBounds(10, 8, 90, 20);
-				timeRadioButton.setText("Timer");
-				
-				manualRadioButton = new Button(timerManipulationComposite, SWT.RADIO);
-				manualRadioButton.setBounds(106, 10, 90, 16);
-				manualRadioButton.setText("Manual");
-				
-				
-				intervalSpinner_1 = new Spinner(innerTimerComposite, SWT.BORDER);
-				intervalSpinner_1.setFont(SWTResourceManager.getFont("Segoe UI", 10, SWT.NORMAL));
-				intervalSpinner_1.setBounds(0, 30, 47, 23);
-				intervalSpinner_1.setValues(5, 0, 999, 0, 1, 10);
-				
-				intervalSpinner_2 = new Spinner(innerTimerComposite, SWT.BORDER);
-				intervalSpinner_2.setEnabled(false);
-				intervalSpinner_2.setBounds(0, 62, 47, 23);
-				intervalSpinner_2.setValues(5, 0, 999, 0, 1, 10);
-				
-				String choices[] = {"Seconds","Minutes"};
-				unitCombo_1 = new Combo(innerTimerComposite, SWT.NONE);
-				unitCombo_1.setBounds(63, 30, 91, 22);
-				unitCombo_1.setItems(choices);
-				unitCombo_1.setText("Seconds");
-				
-				unitCombo_2 = new Combo(innerTimerComposite, SWT.NONE);
-				unitCombo_2.setEnabled(false);
-				unitCombo_2.setBounds(63, 62, 91, 23);
-				unitCombo_2.setItems(choices);
-				unitCombo_2.setText("Seconds");
-				
-				betweenSelectionRadio = new Button(innerTimerComposite, SWT.RADIO);
-				betweenSelectionRadio.setText("between");
-				betweenSelectionRadio.setBounds(130, 5, 90, 16);
-				
-				everySelectionRadio = new Button(innerTimerComposite, SWT.RADIO);
-				everySelectionRadio.setSelection(true);
-				everySelectionRadio.setBounds(78, 5, 49, 16);
-				everySelectionRadio.setText("every");
-				
-				Label lblCopyText = new Label(innerTimerComposite, SWT.NONE);
-				lblCopyText.setBounds(0, 5, 72, 15);
-				lblCopyText.setText("Copy next file");
-				
-				Label lblAnd = new Label(innerTimerComposite, SWT.NONE);
-				lblAnd.setBounds(160, 39, 20, 15);
-				lblAnd.setText("and");
-				
-				
-				// FILE STATISTICS COMPOSITE 
-				// Displays and updates the file counts during a running timer or series of manual sends. Will continue
-				// the count until the 'reset' button is selected.
-				Composite fileStatisticsComposite = new Composite(mainScripterShell, SWT.BORDER);
-				fileStatisticsComposite.setBounds(240, 135, 285, 125);
-				
-				Label lblSourceFiles = new Label(fileStatisticsComposite, SWT.NONE);
-				lblSourceFiles.setForeground(SWTResourceManager.getColor(0, 0, 0));
-				lblSourceFiles.setFont(SWTResourceManager.getFont("Segoe UI", 10, SWT.BOLD));
-				lblSourceFiles.setBounds(10, 10, 85, 15);
-				lblSourceFiles.setText("Source Files");
-				
-				Label lblTotal = new Label(fileStatisticsComposite, SWT.NONE);
-				lblTotal.setAlignment(SWT.RIGHT);
-				lblTotal.setBounds(10, 31, 40, 15);
-				lblTotal.setText("Total:");
-				
-				Label lblSent = new Label(fileStatisticsComposite, SWT.NONE);
-				lblSent.setAlignment(SWT.RIGHT);
-				lblSent.setBounds(10, 52, 40, 15);
-				lblSent.setText("Sent:");
-				
-				Label lblToGo = new Label(fileStatisticsComposite, SWT.NONE);
-				lblToGo.setAlignment(SWT.RIGHT);
-				lblToGo.setBounds(10, 73, 40, 15);
-				lblToGo.setText("To Go:");
-				
-				lblTotalCount = new Label(fileStatisticsComposite, SWT.NONE);
-				lblTotalCount.setAlignment(SWT.RIGHT);
-				lblTotalCount.setBounds(61, 31, 55, 15);
-				lblTotalCount.setText("0");
-				
-				lblSentCount = new Label(fileStatisticsComposite, SWT.NONE);
-				lblSentCount.setAlignment(SWT.RIGHT);
-				lblSentCount.setBounds(61, 52, 55, 15);
-				lblSentCount.setText("0");
-				
-				lblToGoCount = new Label(fileStatisticsComposite, SWT.NONE);
-				lblToGoCount.setAlignment(SWT.RIGHT);
-				lblToGoCount.setBounds(61, 73, 55, 15);
-				lblToGoCount.setText("0");
-				
-				Label lblTimeToNext = new Label(fileStatisticsComposite, SWT.NONE);
-				lblTimeToNext.setFont(SWTResourceManager.getFont("Segoe UI", 10, SWT.BOLD));
-				lblTimeToNext.setBounds(165, 10, 106, 15);
-				lblTimeToNext.setText("Time to next file");
-				
-				lblTimeLeft = new Label(fileStatisticsComposite, SWT.NONE);
-				lblTimeLeft.setAlignment(SWT.RIGHT);
-				lblTimeLeft.setBounds(190, 31, 40, 15);
-				lblTimeLeft.setText("0:00");
-				
-				
-				
-				// PLAYER COMPOSITE
-				// Is contained in the file statistics composite. When application is opened the buttons will be disabled
-				// until, at minimum, the source and destination folders are set. Once set, the play button will be enabled to play
-				// on the default settings. If the send preference is set to manual, the pause button will be disabled. When
-				// play is selected for timer based sending, the pause and reset buttons will be enabled and play disabled.
-				Composite playerComposite = new Composite(fileStatisticsComposite, SWT.NONE);
-				playerComposite.setBounds(169, 52, 102, 30);
-				
-				playButton = new Button(playerComposite, SWT.NONE);
-				playButton.setEnabled(false);
-				playButton.setImage(SWTResourceManager.getImage(EventScripterComposite.class, "/icons/play-arrow.png"));
-				playButton.setBounds(72, 0, 30, 30);
-				
-				pauseButton = new Button(playerComposite, SWT.NONE);
-				pauseButton.setEnabled(false);
-				pauseButton.setImage(SWTResourceManager.getImage(EventScripterComposite.class, "/icons/pause.png"));
-				pauseButton.setBounds(36, 0, 30, 30);
-				
-				resetButton = new Button(playerComposite, SWT.NONE);
-				resetButton.setEnabled(false);
-				resetButton.setImage(SWTResourceManager.getImage(EventScripterComposite.class, "/icons/back.png"));
-				resetButton.setBounds(0, 0, 30, 30);
-				
+		
+		// TIMER MANIPULATION COMPOSITE
+		// Allows the user to manipulate the TimerManager settings. This is the main composite of the timer.
+		// If the user selects for timer based intervals then the inner timer will be active, otherwise if 
+		// set to manual, the inner composite will be disables and will keep the user from manipulating the 
+		// settings.
+		Composite timerManipulationComposite = new Composite(mainScripterShell, SWT.BORDER);
+		timerManipulationComposite.setBounds(5, 135, 230, 125);
+		
+		innerTimerComposite = new Composite(timerManipulationComposite, SWT.NONE);
+		innerTimerComposite.setBounds(10, 29, 195, 98);
+		
+		timeRadioButton = new Button(timerManipulationComposite, SWT.RADIO);
+		timeRadioButton.setSelection(true);
+		timeRadioButton.setBounds(10, 8, 90, 20);
+		timeRadioButton.setText("Timer");
+		
+		manualRadioButton = new Button(timerManipulationComposite, SWT.RADIO);
+		manualRadioButton.setBounds(106, 10, 90, 16);
+		manualRadioButton.setText("Manual");
+		
+		
+		intervalSpinner_1 = new Spinner(innerTimerComposite, SWT.BORDER);
+		intervalSpinner_1.setFont(SWTResourceManager.getFont("Segoe UI", 10, SWT.NORMAL));
+		intervalSpinner_1.setBounds(0, 30, 47, 23);
+		intervalSpinner_1.setValues(5, 0, 999, 0, 1, 10);
+		
+		intervalSpinner_2 = new Spinner(innerTimerComposite, SWT.BORDER);
+		intervalSpinner_2.setEnabled(false);
+		intervalSpinner_2.setBounds(0, 62, 47, 23);
+		intervalSpinner_2.setValues(5, 1, 999, 0, 1, 10);
+		
+		String choices[] = {"Seconds","Minutes"};
+		unitCombo_1 = new Combo(innerTimerComposite, SWT.NONE);
+		unitCombo_1.setBounds(63, 30, 91, 22);
+		unitCombo_1.setItems(choices);
+		unitCombo_1.setText("Seconds");
+		
+		unitCombo_2 = new Combo(innerTimerComposite, SWT.NONE);
+		unitCombo_2.setEnabled(false);
+		unitCombo_2.setBounds(63, 62, 91, 23);
+		unitCombo_2.setItems(choices);
+		unitCombo_2.setText("Seconds");
+		
+		betweenSelectionRadio = new Button(innerTimerComposite, SWT.RADIO);
+		betweenSelectionRadio.setText("between");
+		betweenSelectionRadio.setBounds(130, 5, 90, 16);
+		
+		everySelectionRadio = new Button(innerTimerComposite, SWT.RADIO);
+		everySelectionRadio.setSelection(true);
+		everySelectionRadio.setBounds(78, 5, 49, 16);
+		everySelectionRadio.setText("every");
+		
+		Label lblCopyText = new Label(innerTimerComposite, SWT.NONE);
+		lblCopyText.setBounds(0, 5, 72, 15);
+		lblCopyText.setText("Copy next file");
+		
+		Label lblAnd = new Label(innerTimerComposite, SWT.NONE);
+		lblAnd.setBounds(160, 39, 20, 15);
+		lblAnd.setText("and");
+		
+		
+		// FILE STATISTICS COMPOSITE 
+		// Displays and updates the file counts during a running timer or series of manual sends. Will continue
+		// the count until the 'reset' button is selected.
+		Composite fileStatisticsComposite = new Composite(mainScripterShell, SWT.BORDER);
+		fileStatisticsComposite.setBounds(240, 135, 285, 125);
+		
+		Label lblSourceFiles = new Label(fileStatisticsComposite, SWT.NONE);
+		lblSourceFiles.setForeground(SWTResourceManager.getColor(0, 0, 0));
+		lblSourceFiles.setFont(SWTResourceManager.getFont("Segoe UI", 10, SWT.BOLD));
+		lblSourceFiles.setBounds(10, 10, 85, 15);
+		lblSourceFiles.setText("Source Files");
+		
+		Label lblTotal = new Label(fileStatisticsComposite, SWT.NONE);
+		lblTotal.setAlignment(SWT.RIGHT);
+		lblTotal.setBounds(10, 31, 40, 15);
+		lblTotal.setText("Total:");
+		
+		Label lblSent = new Label(fileStatisticsComposite, SWT.NONE);
+		lblSent.setAlignment(SWT.RIGHT);
+		lblSent.setBounds(10, 52, 40, 15);
+		lblSent.setText("Sent:");
+		
+		Label lblToGo = new Label(fileStatisticsComposite, SWT.NONE);
+		lblToGo.setAlignment(SWT.RIGHT);
+		lblToGo.setBounds(10, 73, 40, 15);
+		lblToGo.setText("To Go:");
+		
+		lblTotalCount = new Label(fileStatisticsComposite, SWT.NONE);
+		lblTotalCount.setAlignment(SWT.RIGHT);
+		lblTotalCount.setBounds(61, 31, 55, 15);
+		lblTotalCount.setText("0");
+		
+		lblSentCount = new Label(fileStatisticsComposite, SWT.NONE);
+		lblSentCount.setAlignment(SWT.RIGHT);
+		lblSentCount.setBounds(61, 52, 55, 15);
+		lblSentCount.setText("0");
+		
+		lblToGoCount = new Label(fileStatisticsComposite, SWT.NONE);
+		lblToGoCount.setAlignment(SWT.RIGHT);
+		lblToGoCount.setBounds(61, 73, 55, 15);
+		lblToGoCount.setText("0");
+		
+		Label lblTimeToNext = new Label(fileStatisticsComposite, SWT.NONE);
+		lblTimeToNext.setFont(SWTResourceManager.getFont("Segoe UI", 10, SWT.BOLD));
+		lblTimeToNext.setBounds(165, 10, 106, 15);
+		lblTimeToNext.setText("Time to next file");
+		
+		lblTimeLeft = new Label(fileStatisticsComposite, SWT.NONE);
+		lblTimeLeft.setAlignment(SWT.RIGHT);
+		lblTimeLeft.setBounds(190, 31, 40, 15);
+		lblTimeLeft.setText("0:00");
+		
+		
+		
+		// PLAYER COMPOSITE
+		// Is contained in the file statistics composite. When application is opened the buttons will be disabled
+		// until, at minimum, the source and destination folders are set. Once set, the play button will be enabled to play
+		// on the default settings. If the send preference is set to manual, the pause button will be disabled. When
+		// play is selected for timer based sending, the pause and reset buttons will be enabled and play disabled.
+		Composite playerComposite = new Composite(fileStatisticsComposite, SWT.NONE);
+		playerComposite.setBounds(169, 52, 102, 30);
+		
+		playButton = new Button(playerComposite, SWT.NONE);
+		playButton.setEnabled(false);
+		playButton.setImage(SWTResourceManager.getImage(EventScripterComposite.class, "/icons/play-arrow.png"));
+		playButton.setBounds(72, 0, 30, 30);
+		
+		pauseButton = new Button(playerComposite, SWT.NONE);
+		pauseButton.setEnabled(false);
+		pauseButton.setImage(SWTResourceManager.getImage(EventScripterComposite.class, "/icons/pause.png"));
+		pauseButton.setBounds(36, 0, 30, 30);
+		
+		resetButton = new Button(playerComposite, SWT.NONE);
+		resetButton.setEnabled(false);
+		resetButton.setImage(SWTResourceManager.getImage(EventScripterComposite.class, "/icons/back.png"));
+		resetButton.setBounds(0, 0, 30, 30);
+		
 
 	}
 	
@@ -268,6 +311,12 @@ public class EventScripterComposite extends Composite {
 					closeMessage.setMessage("The scripter is still running, close anyway?");
 					
 					event.doit = closeMessage.open() == SWT.YES;
+				}
+				
+				try {
+					savePreferences();
+				} catch (IOException e) {
+					e.printStackTrace();
 				}
 			}
 		});
@@ -690,6 +739,31 @@ public class EventScripterComposite extends Composite {
 			resetButton.setEnabled(false);
 		}
 	}
+	
+	public void savePreferences() throws IOException{
+		File file = new File("config.properties");
+		FileWriter writer = new FileWriter(file);
+		
+		Properties properties = new Properties();
+		properties.setProperty("innerTimerComposite", new Boolean(innerTimerComposite.getVisible()).toString());
+		properties.setProperty("txtSourceFolder", txtSourceFolder.getText());
+		properties.setProperty("txtMonitoredFolder", txtMonitoredFolder.getText());
+		properties.setProperty("timerRadioButton", new Boolean(timeRadioButton.getSelection()).toString());
+		properties.setProperty("manualRadioButton", new Boolean(manualRadioButton.getSelection()).toString());
+		properties.setProperty("intervalSpinner_1", new Integer(intervalSpinner_1.getSelection()).toString());
+		properties.setProperty("intervalSpinner_2", new Integer(intervalSpinner_2.getSelection()).toString());
+		properties.setProperty("intervalSpinner_2-enabled", new Boolean(intervalSpinner_2.getEnabled()).toString());
+		properties.setProperty("unitCombo_1", unitCombo_1.getText());
+		properties.setProperty("unitCombo_2", unitCombo_2.getText());
+		properties.setProperty("unitCombo_2-enabled", new Boolean(unitCombo_2.getEnabled()).toString());
+		properties.setProperty("everySelectionRadio", new Boolean(everySelectionRadio.getSelection()).toString());
+		properties.setProperty("betweenSelectionRadio", new Boolean(betweenSelectionRadio.getSelection()).toString());
+	
+		properties.store(writer, "Last exit settings");
+		writer.close();
+	}
+	
+	
 	@Override
 	protected void checkSubclass() {
 		// Disable the check that prevents subclassing of SWT components
