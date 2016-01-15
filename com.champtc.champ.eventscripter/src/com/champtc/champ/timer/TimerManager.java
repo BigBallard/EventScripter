@@ -182,7 +182,15 @@ public class TimerManager {
 	}
 	
 	public boolean verifyLegalBounds(){
-		return(upperUnit >= lowerUnit);
+		int upper = upperUnit;
+		if(upperUnitType.equals(IntervalUnitType.MINUTES))
+			upper = upperUnit * 60;
+		
+		int lower = lowerUnit;
+		if(lowerUnitType.equals(IntervalUnitType.MINUTES))
+			lower = lowerUnit * 60;
+		
+		return(upper >= lower);
 	}
 	/**
 	 * @return the lowerUnitType
