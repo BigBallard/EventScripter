@@ -255,10 +255,17 @@ public class EventScripterComposite extends Composite {
 		
 		mainScripterShell.addListener(SWT.Close, new Listener() {
 			public void handleEvent(Event event) {
-				if(timerManager.isRunning() && !timerManager.paused()){
-					MessageBox closeMessage = new MessageBox((Shell) mainScripterShell, SWT.APPLICATION_MODAL | SWT.YES | SWT.NO);
-					closeMessage.setText("Timer still running");
-					closeMessage.setMessage("The scripter is still running, close any way?");
+				
+				if(timerManager.paused()){
+					MessageBox closeMessage = new MessageBox(getShell(), SWT.APPLICATION_MODAL | SWT.YES | SWT.NO);
+					closeMessage.setText("TIMER PAUSED!");
+					closeMessage.setMessage("The scripter is paused, close anyway?");
+					
+					event.doit = closeMessage.open() == SWT.YES;
+				}else if(timerManager.isRunning()){
+					MessageBox closeMessage = new MessageBox(getShell(), SWT.APPLICATION_MODAL | SWT.YES | SWT.NO);
+					closeMessage.setText("ACTIVE TIMER!");
+					closeMessage.setMessage("The scripter is still running, close anyway?");
 					
 					event.doit = closeMessage.open() == SWT.YES;
 				}
