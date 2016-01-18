@@ -1,10 +1,13 @@
 package com.champtc.champ.ui;
 
-import java.awt.print.Book;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Properties;
 
 import org.eclipse.swt.SWT;
@@ -12,6 +15,8 @@ import org.eclipse.swt.events.FocusAdapter;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -38,36 +43,67 @@ import com.champtc.champ.timer.TimerManager.EventSendPreference;
 import com.champtc.champ.timer.TimerManager.IntervalType;
 import com.champtc.champ.timer.TimerManager.IntervalUnitType;
 
+/**
+ * The main gui composite containing the {@link com.champtc.champ.timer.TimerManager#TimerManager() TimerManager} and
+ * {@link com.champtc.champ.model.DirectoryManager#DirectoryManager() DirectoryManager} of this running instance.
+ * @author dphillips
+ *
+ */
 public class EventScripterComposite extends Composite {
-
 	
 	private TimerManager timerManager;
+	
 	private DirectoryManager directoryManager;
+	
 	private Text txtSourceFolder;
+	
 	private Text txtMonitoredFolder;
+	
 	private Button sourceBrowseButton;
+	
 	private Button monitoredBrowseButton;
+	
 	private Spinner intervalSpinner_1;
+	
 	private Spinner intervalSpinner_2;
+	
 	private Button timeRadioButton;
+	
 	private Button manualRadioButton;
+	
 	private Composite innerTimerComposite;
+	
 	private Combo unitCombo_1;
+	
 	private Combo unitCombo_2;
+	
 	private Button betweenSelectionRadio;
+	
 	private Button everySelectionRadio;
-	private Button playButton;
-	private Button pauseButton;
-	private Button resetButton;
+	
+	private ChampImageButton playButton;
+	
+	private ChampImageButton pauseButton;
+	
+	private ChampImageButton resetButton;
+	
 	private Label lblToGoCount;
+	
 	private Label lblSentCount;
+	
 	private Label lblTotalCount;
+	
 	private Label lblTimeLeft;
+	
+	private Text consoleBox;
+
+  private Button showHideButton;
 
 	/**
 	 * Create the composite.
 	 * @param parent
 	 * @param style
+	 * @param mainDisplay
 	 * @throws IOException 
 	 */
 	public EventScripterComposite(Composite parent, int style, Display mainDisplay) throws IOException {
@@ -76,14 +112,24 @@ public class EventScripterComposite extends Composite {
 		
 		
 		timerManager = new TimerManager();
+		
 		directoryManager = new DirectoryManager();
+		
 		initUI(parent, mainDisplay); 
+		
 		initProperties();
+		
 		initListeners(parent, mainDisplay);
 		
 
 	}
 	
+	/**
+	 * Initialize the previously set properties of the {@link com.champtc.champ.timer.TimerManager#TimerManager() TimerManger} and 
+	 * {@link com.champtc.champ.model.DirectoryManager#DirectoryManager() DirectoryManager} from that last running instance of the application.
+	 * If no <b>config.properties</b> file is present at startup, one will be created with null values and populated once the application closes.
+	 * @throws IOException
+	 */
 	public void initProperties() throws IOException{
 		File f = new File("config.properties");
 		if(new File("config.properties").exists()){
@@ -96,7 +142,6 @@ public class EventScripterComposite extends Composite {
 				return;
 			}
 			
-			innerTimerComposite.setVisible(new Boolean(properties.getProperty("innerTimerComposite-visible")));
 			
 			txtSourceFolder.setText(properties.getProperty("sourceFolder"));
 			directoryManager.setSourceFolder(new File(properties.getProperty("sourceFolder")));
@@ -143,7 +188,6 @@ public class EventScripterComposite extends Composite {
 			Properties properties = new Properties();
 			properties.setProperty("setVal", "false");
 			
-			properties.setProperty("innerTimerComposite-visible", "");
 			properties.setProperty("timerRadioButton", "");
 			properties.setProperty("manualRadioButton", "");
 			properties.setProperty("intervalSpinner_1", "");
@@ -173,11 +217,24 @@ public class EventScripterComposite extends Composite {
 		playButtonsCheck();
 	}
 	
+	/**
+	 * Standup the ui.
+	 * @param mainScripterShell
+	 * @param mainDisplay
+	 */
 	private void initUI(Composite mainScripterShell, Display mainDisplay){
 		
+		consoleBox = new Text(mainScripterShell, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
+		consoleBox.setBounds(5, 265, 520, 70);
+		consoleBox.setEditable(false);
+		consoleBox.setVisible(false);
 		
+		mainScripterShell.setSize(535,293); // original 535,370
+		
+
 		// FILE HANDLING COMPOSITE
 		// Contains UI regarding interaction between the file system and the DirectoryManager
+		
 		Composite fileHandlingComposite = new Composite(mainScripterShell, SWT.BORDER);
 		fileHandlingComposite.setBounds(5, 5, 520, 125);
 		
@@ -323,6 +380,11 @@ public class EventScripterComposite extends Composite {
 		lblTimeLeft.setBounds(190, 31, 40, 15);
 		lblTimeLeft.setText("0:00");
 		
+		showHideButton = new Button(fileStatisticsComposite, SWT.PUSH);
+		showHideButton.setBounds(5, 95, 85, 25);
+		showHideButton.setText("Show Details");
+		
+		
 		
 		
 		// PLAYER COMPOSITE
@@ -333,19 +395,20 @@ public class EventScripterComposite extends Composite {
 		Composite playerComposite = new Composite(fileStatisticsComposite, SWT.NONE);
 		playerComposite.setBounds(169, 52, 102, 30);
 		
-		playButton = new Button(playerComposite, SWT.NONE);
+		
+		playButton = new ChampImageButton(playerComposite, SWTResourceManager.getImage(EventScripterComposite.class, "/icons/play-arrow.png"));
 		playButton.setEnabled(false);
-		playButton.setImage(SWTResourceManager.getImage(EventScripterComposite.class, "/icons/play-arrow.png"));
+		//playButton.setImage(SWTResourceManager.getImage(EventScripterComposite.class, "/icons/play-arrow.png"));
 		playButton.setBounds(72, 0, 30, 30);
 		
-		pauseButton = new Button(playerComposite, SWT.NONE);
+		pauseButton = new ChampImageButton(playerComposite, SWTResourceManager.getImage(EventScripterComposite.class, "/icons/pause.png"));
 		pauseButton.setEnabled(false);
-		pauseButton.setImage(SWTResourceManager.getImage(EventScripterComposite.class, "/icons/pause.png"));
+		//pauseButton.setImage(SWTResourceManager.getImage(EventScripterComposite.class, "/icons/pause.png"));
 		pauseButton.setBounds(36, 0, 30, 30);
 		
-		resetButton = new Button(playerComposite, SWT.NONE);
+		resetButton = new ChampImageButton(playerComposite, SWTResourceManager.getImage(EventScripterComposite.class, "/icons/back.png"));
 		resetButton.setEnabled(false);
-		resetButton.setImage(SWTResourceManager.getImage(EventScripterComposite.class, "/icons/back.png"));
+		//resetButton.setImage(SWTResourceManager.getImage(EventScripterComposite.class, "/icons/back.png"));
 		resetButton.setBounds(0, 0, 30, 30);
 		
 
@@ -644,53 +707,54 @@ public class EventScripterComposite extends Composite {
 		});
 		
 		
-		playButton.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				resetButton.setEnabled(true);
-				
-				if(timerManager.getEventSendPreference() == EventSendPreference.TIMER){
-					disableTimerConfiguration();
-					if(timerManager.isRunning()){
-						playButton.setEnabled(false);
-						pauseButton.setEnabled(true);
-						
-						timerManager.startTimer();
-						System.out.println("Timer resumed.");
-					}else{
-						playButton.setEnabled(false);
-						pauseButton.setEnabled(true);
-						
-						timerManager.startTimer();
-						System.out.println("Timer started.");
-					}
-					
-				}else{
-					
-					directoryManager.copyFile();
-				}
-			}
-		});
+		playButton.addMouseListener(new MouseAdapter() {
+		  
+		  @Override
+		  public void mouseUp(final MouseEvent e){
+		    resetButton.setEnabled(true);
+        
+        if(timerManager.getEventSendPreference() == EventSendPreference.TIMER){
+          disableTimerConfiguration();
+          if(timerManager.isRunning()){
+            playButton.setEnabled(false);
+            pauseButton.setEnabled(true);
+            
+            timerManager.startTimer();
+            writeToConsoleBox("Timer resumed.");
+          }else{
+            playButton.setEnabled(false);
+            pauseButton.setEnabled(true);
+            
+            timerManager.startTimer();
+            writeToConsoleBox("Timer started.");
+          }
+          
+        }else{
+          
+          directoryManager.copyFile();
+        }
+		  }
+    });
 		
-		pauseButton.addSelectionListener(new SelectionAdapter() {
+		pauseButton.addMouseListener(new MouseAdapter() {
 			
 			@Override
-			public void widgetSelected(SelectionEvent e) {
+			public void mouseUp(final MouseEvent e) {
 				enableTimerConfiguration();
 				timerManager.pauseTimer();
 				
 				pauseButton.setEnabled(false);
 				playButton.setEnabled(true);
 				
-				System.out.println("Timer paused.");
+				writeToConsoleBox("Timer paused.");
 			}
 			
 		});
 		
-		resetButton.addSelectionListener(new SelectionAdapter() {
+		resetButton.addMouseListener(new MouseAdapter() {
 			
 			@Override
-			public void widgetSelected(SelectionEvent e) {
+			public void mouseUp(final MouseEvent e) {
 				timerManager.resetTimer();
 				directoryManager.resetIndex();
 				playButton.setEnabled(true);
@@ -701,9 +765,26 @@ public class EventScripterComposite extends Composite {
 				lblSentCount.setText("0");
 				lblToGoCount.setText(lblTotalCount.getText());
 				
-				System.out.println("Timer reset.");
+				writeToConsoleBox("Timer reset.");
 			}
 		});
+		
+		showHideButton.addSelectionListener(new SelectionAdapter() {
+		  
+		  @Override
+		  public void widgetSelected(SelectionEvent e){
+		    if(showHideButton.getText().equalsIgnoreCase("Show Details")){
+  		    showHideButton.setText("Hide Details");
+  		    consoleBox.setVisible(true);
+  		    mainScripterShell.setSize(535,370);
+		    }else{
+		      showHideButton.setText("Show Details");
+		      consoleBox.setVisible(false);
+		      mainScripterShell.setSize(535,293);
+		    }
+		  }
+    });
+		
 		timerManager.addListener(new TimerListener() {
 			
 			@Override
@@ -738,6 +819,30 @@ public class EventScripterComposite extends Composite {
 						}
 					}
 				});
+			}
+
+			@Override
+			public void consoleWrite(String message) {
+				System.out.println(message);
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				PrintStream oldOut = System.out;
+				
+				System.setOut(new PrintStream(out));
+				System.out.println(message);
+				getDisplay().syncExec(new Runnable() {
+					@Override
+					public void run() {
+						consoleBox.append(new SimpleDateFormat("HH:mm:ss").format(new Date()).toString() + ": " + new String(out.toByteArray()));
+					}
+				});
+				
+				System.setOut(oldOut);
+				try {
+					out.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				
 			}
 		});
 		
@@ -774,11 +879,37 @@ public class EventScripterComposite extends Composite {
 							enableTimerConfiguration();
 						playButtonsCheck();
 						
-						System.out.println("All files copied!");
+						writeToConsoleBox("All files copied!");
 					}
 				});
 			}
+
+			@Override
+			public void consoleWrite(String message) {
+				System.out.println(message);
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				PrintStream oldOut = System.out;
+				
+				System.setOut(new PrintStream(out));
+				System.out.println(message);
+				
+				getDisplay().syncExec(new Runnable() {
+					@Override
+					public void run() {
+						consoleBox.append(new SimpleDateFormat("HH:mm:ss").format(new Date()).toString() + ": " + new String(out.toByteArray()));
+					}
+				});
+				
+				System.setOut(oldOut);
+				try {
+					out.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 		});
+		
+		
 		
 	}
 	
@@ -804,6 +935,32 @@ public class EventScripterComposite extends Composite {
 		}
 	}
 	
+	/**
+	 * Writes out the <b>System.out</b> statement to the console then to the GUI.
+	 * @param message
+	 */
+	public void writeToConsoleBox(String message){
+		System.out.println(message);
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		PrintStream oldOut = System.out;
+		
+		System.setOut(new PrintStream(out));
+		System.out.println(message);
+		consoleBox.append(new SimpleDateFormat("HH:mm:ss").format(new Date()).toString() + ": " + new String(out.toByteArray()));
+		
+		System.setOut(oldOut);
+		try {
+			out.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Saves the current settings of the GUI components, {@link com.champtc.champ.timer.TimerManager#TimerManager() TimerManager}, and
+	 * {@link com.champtc.champ.model.DirectoryManager#DirectoryManager() DirectoryManager}.
+	 * @throws IOException
+	 */
 	public void savePreferences() throws IOException{
 		File file = new File("config.properties");
 		FileWriter writer = new FileWriter(file);
@@ -812,7 +969,6 @@ public class EventScripterComposite extends Composite {
 		properties.setProperty("setVal", "true");
 		
 		//GUI properties
-		properties.setProperty("innerTimerComposite-visible", new Boolean(innerTimerComposite.getVisible()).toString());
 		properties.setProperty("timeRadioButton", new Boolean(timeRadioButton.getSelection()).toString());
 		properties.setProperty("manualRadioButton", new Boolean(manualRadioButton.getSelection()).toString());
 		properties.setProperty("intervalSpinner_1", new Integer(intervalSpinner_1.getSelection()).toString());

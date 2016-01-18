@@ -8,5 +8,7 @@ public interface TimerListener {
 		
 		public void timeUpdate(int time);
 		
+		public void consoleWrite(String message);
+		
 		
 }

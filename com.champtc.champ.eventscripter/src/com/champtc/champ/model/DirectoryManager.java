@@ -29,7 +29,7 @@ private Set<DirectoryManagerListener> listeners = new HashSet<DirectoryManagerLi
 	
 	public void copyFile(){
 		
-		System.out.println(Paths.get(fileList[currentIndex.get()].getPath()).getFileName().toString() + " sent");
+		fireConsoleWriteEvent(Paths.get(fileList[currentIndex.get()].getPath()).getFileName().toString() + " sent");
 		
 		File dest = new File(getDestinationFolder().getPath() + "\\" + new String(Paths.get(fileList[currentIndex.get()].getPath()).getFileName().toString()));
 		try {
@@ -53,9 +53,6 @@ private Set<DirectoryManagerListener> listeners = new HashSet<DirectoryManagerLi
 	}
 	
 	
-	/**
-	 * 
-	 */
 	public void resetIndex(){
 		currentIndex.set(0);
 	}
@@ -87,9 +84,6 @@ private Set<DirectoryManagerListener> listeners = new HashSet<DirectoryManagerLi
 			hasSourceFolder = false;
 			return false;
 		}
-	
-		
-		
 	}
 
 	/**
@@ -186,6 +180,12 @@ private Set<DirectoryManagerListener> listeners = new HashSet<DirectoryManagerLi
 	private void fireNoMoreFilesEvent(){
 		for(DirectoryManagerListener l : listeners){
 			l.noMoreFilesEvent();
+		}
+	}
+	
+	private void fireConsoleWriteEvent(String message){
+		for(DirectoryManagerListener l : listeners){
+			l.consoleWrite(message);
 		}
 	}
 }

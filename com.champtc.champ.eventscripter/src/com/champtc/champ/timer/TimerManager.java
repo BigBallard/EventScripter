@@ -43,7 +43,10 @@ public class TimerManager {
 	
 	private ExecutorService executor;
 	
-	
+	/**
+	 * The running instance of the timer as a runnable.
+	 * @author dphillips
+	 */
 	public static class RunOnTimer implements Runnable{
 		
 		TimerManager timer;
@@ -99,7 +102,6 @@ public class TimerManager {
 						timerValue--;
 					}
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				timer.fireSendEvent();
@@ -109,6 +111,11 @@ public class TimerManager {
 		}
 	};
 	
+	/** 
+	 * Executes the runnable RunOnTimer if the {@link #eventSendPreference eventSendPreference} 
+	 * is set to <i><b>TIMER</b></i>. Will {@link #verifyLegalBounds() verifyLegalBounds} if the {@link #intervalType intervalType} 
+	 * is set to <i><b>BETWEEN</b></i>. Sets the timer to running status.
+	 */
 	public void startTimer(){
 		if(isRunning()){
 			stopFlag.set(false);
@@ -157,6 +164,7 @@ public class TimerManager {
 		return;
 	}
 	
+	/** Sets appropriate flags to end the timer and sets the running status to false. */
 	public void resetTimer(){
 		
 		resetFlag.set(true);
@@ -167,18 +175,24 @@ public class TimerManager {
 		
 	}
 	
+	/** Pauses current running timer. */
 	public void pauseTimer(){
 		stopFlag.set(true);
 	}
 	
+	/** @return Boolean pause state. */
 	public boolean paused(){
 		return stopFlag.get();
 	}
 	
+	/** @return Boolean running state. */
 	public boolean isRunning(){
 		return runningStatus.get();
 	}
 	
+	/**
+	 * Verifies if the {@link #lowerUnit lowerUnit} and {@link #upperUnit upperUnit} are within legal bounds (upper is greather than or equal to lower).
+	 */
 	public boolean verifyLegalBounds(){
 		int upper = upperUnit;
 		if(upperUnitType.equals(IntervalUnitType.MINUTES))

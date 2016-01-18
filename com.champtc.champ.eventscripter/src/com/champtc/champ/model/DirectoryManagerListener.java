@@ -8,6 +8,5 @@ public interface DirectoryManagerListener {
 	
 	public void noMoreFilesEvent();
 	
-	
-
+	public void consoleWrite(String message);
 }

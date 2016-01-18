@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?pde version="3.5"?>
 
-<product name="Event Scripter" uid="com.champtc.champ.eventscripter" id="com.champtc.champ.eventscripter.product" application="com.champtc.champ.eventscripter.application" version="1.0.2" useFeatures="false" includeLaunchers="true">
+<product name="Event Scripter" uid="com.champtc.champ.eventscripter" id="com.champtc.champ.eventscripter.product" application="com.champtc.champ.eventscripter.application" version="1.2.2" useFeatures="false" includeLaunchers="true">
 
    <configIni use="default">
    </configIni>
