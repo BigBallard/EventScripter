@@ -84,7 +84,7 @@ public class EventScripterComposite extends Composite {
 	}
 	
 	public void initProperties() throws IOException{
-		
+		File f = new File("config.properties");
 		if(new File("config.properties").exists()){
 			
 		}else{
@@ -745,6 +745,8 @@ public class EventScripterComposite extends Composite {
 		FileWriter writer = new FileWriter(file);
 		
 		Properties properties = new Properties();
+		
+		//GUI properties
 		properties.setProperty("innerTimerComposite", new Boolean(innerTimerComposite.getVisible()).toString());
 		properties.setProperty("txtSourceFolder", txtSourceFolder.getText());
 		properties.setProperty("txtMonitoredFolder", txtMonitoredFolder.getText());
@@ -758,7 +760,18 @@ public class EventScripterComposite extends Composite {
 		properties.setProperty("unitCombo_2-enabled", new Boolean(unitCombo_2.getEnabled()).toString());
 		properties.setProperty("everySelectionRadio", new Boolean(everySelectionRadio.getSelection()).toString());
 		properties.setProperty("betweenSelectionRadio", new Boolean(betweenSelectionRadio.getSelection()).toString());
-	
+		properties.setProperty("everySelectionRadio", new Boolean(everySelectionRadio.getSelection()).toString());
+		
+		//Timer Manager
+		properties.setProperty("lowerUnitType", timerManager.getLowerUnitType().toString());
+		properties.setProperty("upperUnitType", timerManager.getUpperUnitType().toString());
+		properties.setProperty("eventSendPreferences", timerManager.getEventSendPreference().toString());
+		properties.setProperty("intervalType", timerManager.getIntervalType().toString());
+
+		//Directory Manager
+		properties.setProperty("sourceFolder", directoryManager.getSourceFolder().getPath());
+		properties.setProperty("destinationFolder", directoryManager.getDestinationFolder().getAbsolutePath());
+		
 		properties.store(writer, "Last exit settings");
 		writer.close();
 	}
