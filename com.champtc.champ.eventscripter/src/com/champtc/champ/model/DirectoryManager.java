@@ -74,6 +74,7 @@ private Set<DirectoryManagerListener> listeners = new HashSet<DirectoryManagerLi
 		// check for valid folder
 		
 		if(sourceFolder.exists() && sourceFolder.isDirectory()){
+			hasSourceFolder = true;
 			this.sourceFolder = sourceFolder;
 			fileList = sourceFolder.listFiles();
 			//set list of files
@@ -83,6 +84,7 @@ private Set<DirectoryManagerListener> listeners = new HashSet<DirectoryManagerLi
 			//fire event (sourceFolderChanged)
 			return true;
 		}else{
+			hasSourceFolder = false;
 			return false;
 		}
 	
@@ -101,9 +103,14 @@ private Set<DirectoryManagerListener> listeners = new HashSet<DirectoryManagerLi
 	 * @param destinationFolder the destinationFolder to set
 	 */
 	public boolean setDestinationFolder(File destinationFolder) {
-		// check for valid folder
-		this.destinationFolder = destinationFolder;
-		return true;
+		if(destinationFolder.exists() && destinationFolder.isDirectory()){
+			hasDestinationFolder = true;
+			this.destinationFolder = destinationFolder;
+			return true;
+		}else{
+			hasDestinationFolder = false;
+			return false;
+		}
 	}
 	
 	/**

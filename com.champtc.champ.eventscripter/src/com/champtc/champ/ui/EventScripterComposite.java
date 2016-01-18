@@ -2,6 +2,7 @@ package com.champtc.champ.ui;
 
 import java.awt.print.Book;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Properties;
@@ -86,14 +87,63 @@ public class EventScripterComposite extends Composite {
 	public void initProperties() throws IOException{
 		File f = new File("config.properties");
 		if(new File("config.properties").exists()){
+			Properties properties = new Properties();
+			File file = new File("config.properties");
+			FileReader reader = new FileReader(file);
+			properties.load(reader);
+			
+			if(properties.getProperty("setVal") == "false"){
+				return;
+			}
+			
+			innerTimerComposite.setVisible(new Boolean(properties.getProperty("innerTimerComposite-visible")));
+			
+			txtSourceFolder.setText(properties.getProperty("sourceFolder"));
+			directoryManager.setSourceFolder(new File(properties.getProperty("sourceFolder")));
+			lblTotalCount.setText(new Integer(directoryManager.getTotalFileCount()).toString());
+			lblToGoCount.setText(new Integer(directoryManager.getTotalFileCount()).toString());
+			
+			txtMonitoredFolder.setText(properties.getProperty("destinationFolder"));
+			directoryManager.setDestinationFolder(new File(properties.getProperty("destinationFolder")));
+			
+			timeRadioButton.setSelection(new Boolean(properties.getProperty("timeRadioButton")));
+			manualRadioButton.setSelection(new Boolean(properties.getProperty("manualRadioButton")));
+			if(timeRadioButton.getSelection()){
+				timerManager.setEventSendPreference(EventSendPreference.TIMER);
+			}else{
+				timerManager.setEventSendPreference(EventSendPreference.MANUAL);
+			}
+			
+			intervalSpinner_1.setSelection(new Integer(properties.getProperty("intervalSpinner_1")));
+			timerManager.setLowerUnit(new Integer(properties.getProperty("intervalSpinner_1")));
+			
+			intervalSpinner_2.setSelection(new Integer(properties.getProperty("intervalSpinner_2")));
+			intervalSpinner_2.setEnabled(new Boolean(properties.getProperty("intervalSpinner_2-enabled")));
+			timerManager.setUpperUnit(new Integer(properties.getProperty("intervalSpinner_2")));
+			
+			unitCombo_1.setText(properties.getProperty("unitCombo_1"));
+			timerManager.setLowerUnitType(IntervalUnitType.valueOf((properties.getProperty("unitCombo_1")).toUpperCase()));
+			
+			
+			unitCombo_2.setText(properties.getProperty("unitCombo_2"));
+			unitCombo_2.setEnabled(new Boolean(properties.getProperty("unitCombo_2-enabled")));
+			timerManager.setUpperUnitType(IntervalUnitType.valueOf((properties.getProperty("unitCombo_2")).toUpperCase()));
+			
+			everySelectionRadio.setSelection(new Boolean(properties.getProperty("everySelectionRadio")));
+			betweenSelectionRadio.setSelection(new Boolean(properties.getProperty("betweenSelectionRadio")));
+			if(everySelectionRadio.getSelection()){
+				timerManager.setIntervalType(IntervalType.EVERY);
+			}else{
+				timerManager.setIntervalType(IntervalType.BETWEEN);
+			}
+			reader.close();
 			
 		}else{
 			File file = new File("config.properties");
 			Properties properties = new Properties();
+			properties.setProperty("setVal", "false");
 			
-			properties.setProperty("innerTimerComposite", "");
-			properties.setProperty("txtSourceFolder", "");
-			properties.setProperty("txtMonitoredFolder", "");
+			properties.setProperty("innerTimerComposite-visible", "");
 			properties.setProperty("timerRadioButton", "");
 			properties.setProperty("manualRadioButton", "");
 			properties.setProperty("intervalSpinner_1", "");
@@ -105,13 +155,22 @@ public class EventScripterComposite extends Composite {
 			properties.setProperty("everySelectionRadio", "");
 			properties.setProperty("betweenSelectionRadio", "");
 			
+			//Timer Manager
+			properties.setProperty("lowerUnitType", "");
+			properties.setProperty("upperUnitType", "");
+			properties.setProperty("eventSendPreferences", "");
+			properties.setProperty("intervalType", "");
+
+			//Directory Manager
+			properties.setProperty("sourceFolder", "");
+			properties.setProperty("destinationFolder", "");
 			
 			FileWriter writer = new FileWriter(file);
 			properties.store(writer, "Default properties");
 			writer.close();
 		}
 		
-		
+		playButtonsCheck();
 	}
 	
 	private void initUI(Composite mainScripterShell, Display mainDisplay){
@@ -311,8 +370,13 @@ public class EventScripterComposite extends Composite {
 					closeMessage.setMessage("The scripter is still running, close anyway?");
 					
 					event.doit = closeMessage.open() == SWT.YES;
+				}else{
+					MessageBox closeMessage = new MessageBox(getShell(), SWT.APPLICATION_MODAL | SWT.YES | SWT.NO);
+					closeMessage.setMessage("Closing");
+					closeMessage.setMessage("Are you sure you want to exit EventScripter?");
+					
+					event.doit = closeMessage.open() == SWT.YES;
 				}
-				
 				try {
 					savePreferences();
 				} catch (IOException e) {
@@ -745,12 +809,11 @@ public class EventScripterComposite extends Composite {
 		FileWriter writer = new FileWriter(file);
 		
 		Properties properties = new Properties();
+		properties.setProperty("setVal", "true");
 		
 		//GUI properties
-		properties.setProperty("innerTimerComposite", new Boolean(innerTimerComposite.getVisible()).toString());
-		properties.setProperty("txtSourceFolder", txtSourceFolder.getText());
-		properties.setProperty("txtMonitoredFolder", txtMonitoredFolder.getText());
-		properties.setProperty("timerRadioButton", new Boolean(timeRadioButton.getSelection()).toString());
+		properties.setProperty("innerTimerComposite-visible", new Boolean(innerTimerComposite.getVisible()).toString());
+		properties.setProperty("timeRadioButton", new Boolean(timeRadioButton.getSelection()).toString());
 		properties.setProperty("manualRadioButton", new Boolean(manualRadioButton.getSelection()).toString());
 		properties.setProperty("intervalSpinner_1", new Integer(intervalSpinner_1.getSelection()).toString());
 		properties.setProperty("intervalSpinner_2", new Integer(intervalSpinner_2.getSelection()).toString());
@@ -765,7 +828,6 @@ public class EventScripterComposite extends Composite {
 		//Timer Manager
 		properties.setProperty("lowerUnitType", timerManager.getLowerUnitType().toString());
 		properties.setProperty("upperUnitType", timerManager.getUpperUnitType().toString());
-		properties.setProperty("eventSendPreferences", timerManager.getEventSendPreference().toString());
 		properties.setProperty("intervalType", timerManager.getIntervalType().toString());
 
 		//Directory Manager

@@ -19,7 +19,7 @@ public class EventScripter {
 		Shell mainScripterShell = new Shell(mainDisplay,NON_RESIZABLE);
 		mainScripterShell.setSize(535,293);
 		mainScripterShell.setText("Event Scripter");
-		mainScripterShell.setImage(SWTResourceManager.getImage(EventScripterComposite.class, "/icons/EventScripter-64.png"));
+		mainScripterShell.setImage(SWTResourceManager.getImage(EventScripterComposite.class, "/icons/Icon-Small.png"));
 		
 		mainScripterShell.setBackground(mainDisplay.getSystemColor(SWT.COLOR_WHITE));
 		
